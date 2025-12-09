@@ -28,7 +28,7 @@ export const getJobStatus = async (id) => {
 
 export const runJob = async (body) => {
   try {
-    console.log('Enqueuing job with body:', body)
+    console.log('Run job:', body?.url)
 
     const job = await queue.add('api-triggered-job', body)
     await new Promise(r => setTimeout(r, 100))

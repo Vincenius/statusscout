@@ -127,8 +127,6 @@ export default async function checkRoutes(fastify, opts) {
           // return prev check if it was already checked three times today
           return { statusCode, quickcheckId: prevChecks[0].quickcheckId, isPrevCheck: true }
         } else {
-          console.log('START CHECK')
-
           const quickcheckId = uuidv4();
           const { waitingIndex, jobId } = await runJob({ type: 'free', quickcheckId, url: baseUrl })
           await db.collection('quickchecks').insertOne({ url: baseUrl, createdAt: new Date(), quickcheckId, jobId })

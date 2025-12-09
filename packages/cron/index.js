@@ -19,10 +19,13 @@ async function tryRun(type) {
       confirmed: true,
       $or: [
         { 'subscription.expiresAt': { $gt: now } },
-        { 'subscription.expiresAt': { $exists: false } }
+        { 'subscription.expiresAt': { $exists: false } },
+        { 'subscription.expiresAt': null },
       ],
       'subscription.plan': { $in: ['pro', 'trial'] }
     }).toArray();
+
+    console.log('run', type, 'check for', users.length, 'users')
 
     for (const user of users) {
       const websites = await db.collection('websites').find({
@@ -54,7 +57,8 @@ async function runNotifications() {
       confirmed: true,
       $or: [
         { 'subscription.expiresAt': { $gt: now } },
-        { 'subscription.expiresAt': { $exists: false } }
+        { 'subscription.expiresAt': { $exists: false } },
+        { 'subscription.expiresAt': null },
       ],
       'subscription.plan': { $in: ['pro', 'trial'] }
     }).toArray();
@@ -162,7 +166,7 @@ async function runFeedbackCheck() {
       'confirmed': true
     }).toArray()
 
-    console.log('checking for users  three days after signup, found', users.length)
+    console.log('checking for users three days after signup, found', users.length)
 
     if (users.length > 0) {
       await fetch(`${process.env.API_URL}/v1/notification/feedback`, {

@@ -7,6 +7,8 @@ const client = new MongoClient(uri);
 let db;
 
 export async function connectDB() {
+  if (db) return db;
+
   try {
     await client.connect();
     db = client.db('status-check');

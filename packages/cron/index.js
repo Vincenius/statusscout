@@ -44,8 +44,6 @@ async function tryRun(type) {
     }
   } catch (e) {
     console.error(e)
-  } finally {
-    await disconnectDB()
   }
 }
 
@@ -80,8 +78,6 @@ async function runNotifications() {
     }
   } catch (e) {
     console.error(e)
-  } finally {
-    await disconnectDB()
   }
 }
 
@@ -89,8 +85,12 @@ async function cleanUp() {
   try {
     console.log('run cleanup')
     const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 2)
+    const monthAgo = new Date()
     weekAgo.setHours(0, 0, 0, 0)
+    weekAgo.setDate(weekAgo.getDate() - 7)
+
+    monthAgo.setHours(0, 0, 0, 0)
+    monthAgo.setDate(monthAgo.getMonth() - 1)
 
     const db = await connectDB()
     const quickchecks = await db.collection('quickchecks')
@@ -104,11 +104,12 @@ async function cleanUp() {
       ])
     }
 
-    console.log('deleted', quickchecks.length, 'quickchecks')
+    const oldChecks = await db.collection('checks')
+      .deleteMany({ createdAt: { $lte: monthAgo.toISOString() } })
+
+    console.log('deleted', quickchecks.length, 'quickchecks and', oldChecks.deletedCount, 'old checks')
   } catch (e) {
     console.error(e)
-  } finally {
-    await disconnectDB()
   }
 }
 
@@ -143,8 +144,6 @@ async function runTrialCheck() {
     }
   } catch (e) {
     console.error('error on trial check', e)
-  } finally {
-    await disconnectDB()
   }
 }
 
@@ -180,8 +179,6 @@ async function runFeedbackCheck() {
     }
   } catch (e) {
     console.error('error on trial check', e)
-  } finally {
-    await disconnectDB()
   }
 }
 
@@ -210,7 +207,16 @@ cron.schedule('20 */5 * * * *', () => tryRun('quick'))
 
 // run once immediately
 // tryRun('extended')
-// cleanUp()
+cleanUp()
 // runNotifications()
 // runTrialCheck()
 // runFeedbackCheck()
+
+const shutdown = async () => {
+  console.log('Shutting down gracefully...');
+  await disconnectDB();
+  process.exit(0);
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

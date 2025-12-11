@@ -10,7 +10,7 @@ export const runBrokenLinkCheck = async ({ uri, id, websiteId, createdAt, type, 
   const url = new URL(uri);
   const baseUrl = url.origin;
   const checker = new LinkChecker();
-  const crawlLimit = type === 'free' ? 200 : 3000;
+  const crawlLimit = type === 'free' ? 200 : 4000;
 
   const results = await checker.check({
     path: baseUrl,

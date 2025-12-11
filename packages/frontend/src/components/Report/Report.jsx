@@ -384,7 +384,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
           </>}
           {!linkCheck && <LoadingChart label="Broken Links" size="lg" checkState={checkState} />}
           {isQuickCheck && <Text size="md" ta="center" fs="italic" mt="sm">
-            The quick check scan only checks up to 200 links. Sign-up to check up to than 3000 links.
+            The quick check scan only checks up to 200 links. Sign-up to check up to 4000 links.
           </Text>}
           <Blockquote p="md" my="md" maw={600} mx="auto">Fixing broken links improves user experience, enhances SEO rankings, and maintains website credibility by ensuring all links lead to valid destinations.</Blockquote>
 

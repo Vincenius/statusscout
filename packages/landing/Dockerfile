@@ -18,6 +18,8 @@ ARG VITE_BASE_URL
 ARG VITE_APP_URL
 ARG VITE_API_URL
 ARG VITE_ENABLE_ANALYTICS
+ARG VITE_TURNSTILE_SITE_KEY
+ARG VITE_GTM_ID
 
 # Inject environment variables into a .env.production file for Vite
 RUN echo "VITE_ENABLE_ANALYTICS=${VITE_ENABLE_ANALYTICS}" > .env.production && \

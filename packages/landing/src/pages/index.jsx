@@ -8,7 +8,7 @@ import Pricing from '@/components/Landing/Pricing';
 
 function Landing() {
   return (
-    <Layout title="Your Website's Health All in One Place" >
+    <Layout title="Is your AI-built app leaking secrets? | StatusScout" >
       <Flex mx="auto" mih="80vh" align="center">
         <Hero />
       </Flex>

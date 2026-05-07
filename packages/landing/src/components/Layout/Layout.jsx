@@ -152,8 +152,8 @@ const Layout = ({ children, title }) => {
             <Text size="md" fw={200}>StatusScout</Text>
           </Flex>
           <Box>
-            <Text size="sm">Made and hosted in the EU 🇪🇺</Text>
-            <Text size="sm">Runs on renewable energy 🍃</Text>
+            <Text size="sm" c="dimmed">Made and hosted in the EU 🇪🇺</Text>
+            <Text size="sm" c="dimmed">Runs on renewable energy 🍃</Text>
           </Box>
         </Flex>
 

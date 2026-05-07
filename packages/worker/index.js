@@ -4,11 +4,13 @@ import { runUptimeCheck } from './checks/uptime.js'
 import { runFuzzCheck } from './checks/fuzz.js'
 import { runHeaderCheck } from './checks/headers.js'
 import { runSslCheck } from './checks/ssl.js'
-import { runLighthouseCheck } from './checks/lighthouse.js'
-import { runPerformanceCheck } from './checks/performance.js'
 import { runCustomChecks } from './checks/custom.js'
 import { runBrokenLinkCheck } from './checks/links.js'
 import { runDnsCheck } from './checks/dns.js'
+import { runCookieCheck } from './checks/cookies.js'
+import { runMixedContentCheck } from './checks/mixedcontent.js'
+import { runPageAnalysisCheck } from './checks/pageanalysis.js'
+import { runApiDocsCheck } from './checks/apidocs.js'
 import { ObjectId } from 'mongodb'
 import { runNotifications, runDailyNotification } from './notification.js'
 
@@ -32,12 +34,16 @@ export const run = async ({ id, triggerName, type = 'quick', websiteId, quickche
     const checks = [
       () => runHeaderCheck(baseParams),
       () => runSslCheck(baseParams),
+      () => runCookieCheck(baseParams),
     ]
 
     if (type === 'extended' || type === 'full' || type === 'free') {
       checks.push(
         () => runFuzzCheck(baseParams),
         () => runDnsCheck(baseParams),
+        () => runMixedContentCheck(baseParams),
+        () => runPageAnalysisCheck(baseParams),
+        () => runApiDocsCheck(baseParams),
       )
     }
 
@@ -49,8 +55,6 @@ export const run = async ({ id, triggerName, type = 'quick', websiteId, quickche
 
     if (type === 'full' || type === 'free') {
       checks.push(
-        () => runLighthouseCheck(baseParams),
-        () => runPerformanceCheck(baseParams),
         () => runBrokenLinkCheck(baseParams)
       )
     }

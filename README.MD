@@ -1,35 +1,40 @@
 # StatusScout
 
-StatusScout is an all-in-one status monitoring tool for websites and services. It tracks uptime, detects outages, checks for security issues, and provides instant alerts through a modern dashboard.
+Security and health monitoring for apps built with AI tools like Lovable, Bolt.new, v0, and Cursor — catch what the AI missed before your users do.
 
-Run a health check on:
+Run a free scan (no signup): [statusscout.dev](https://statusscout.dev)
 
-[https://statusscout.dev/](https://statusscout.dev/)
+## Why StatusScout?
 
-## Features
+AI-generated code ships with 2.74× more security vulnerabilities than human-written code (CodeRabbit, Dec 2025). Most indie developers and vibe coders have no idea their Lovable or Bolt app is exposing `.env` files, missing security headers, or vulnerable to subdomain takeover.
 
-- Website health checks (SEO, accessibility, performance, security headers, sensitive files)
-- Custom test flows
-- Automated background worker for status checks
-- Cron job scheduling
-- REST API for data access
-- Modern React frontend dashboard
+StatusScout catches this in seconds — and keeps watching so you don't have to.
+
+## What It Checks
+
+- **Security headers** — CSP, HSTS, X-Frame-Options, Referrer-Policy, and 6 more that AI scaffolding almost never sets
+- **Exposed files** — `.env`, debug routes, admin panels, and backup paths that AI tools commonly scaffold without locking down
+- **SSL / HTTPS** — certificate validity, expiry alerts, domain match
+- **Uptime** — real-time monitoring with email, SMS, and ntfy alerts
+- **DNS health** — SPF, DMARC, MX, and subdomain takeover detection via subfinder + subzy
+- **Broken links** — crawls up to 4,000 URLs per run
+- **SEO & Accessibility** — Lighthouse-powered basics
+- **Core Web Vitals** — via Google PageSpeed Insights (requires API key)
+- **Custom test flows** — Playwright-based signup, checkout, and journey automation
 
 ## Project Structure
 
 ```
-packages/api/        # Fastify-based REST API server
-packages/cron/       # Cron job scheduler to trigger worker jobs
-packages/frontend/   # App Frontend
-packages/landing/    # Landing Page
-packages/shared/     # Shared functions
-packages/worker/     # Background worker for executing checks
-assets/              # Static assets (e.g., logo)
+packages/api/        # Fastify REST API server
+packages/cron/       # Cron scheduler — triggers periodic checks
+packages/frontend/   # React dashboard (post-login app)
+packages/landing/    # Public marketing & scan page
+packages/shared/     # Shared utilities (notifications, issue history)
+packages/worker/     # Background worker — executes all checks
+assets/              # Static assets (logo, wordlists)
 ```
 
 ## Getting Started
-
-> Disclaimer: The self-hosting guide is in progress. Help me improving it by letting me know if you run into issues.
 
 ### Prerequisites
 
@@ -48,67 +53,24 @@ assets/              # Static assets (e.g., logo)
    cp .env.dist .env
    ```
 
-3. Start all services using Docker Compose:
+3. Start all services:
    ```sh
    docker compose up -d
    ```
 
-4. Access the frontend at [http://localhost:3000](http://localhost:3000).
-
+4. Open [http://localhost:3000](http://localhost:3000).
 
 ### Development
 
-For developing you need:
+Requires Node.js v20+ and local MongoDB + Redis instances.
 
-- Node.js (v20+ recommended)
-- MongoDB & Redis
-
-This project uses [Lerna](https://lerna.js.org/) for managing subprojects in the `packages/` folder.
-
-1. Install dependencies for all packages:
 ```sh
-npx lerna bootstrap
+yarn          # install all workspace dependencies
+yarn dev      # start all packages in dev mode
 ```
 
-2. Run Frontend, API and Worker
-```sh
-yarn
-yarn dev
-```
-
-Or run each package separately
-
-- **Frontend:**  
-  ```sh
-  cd packages/frontend
-  cp .env.dist .env
-  yarn
-  yarn dev
-  ```
-- **API:**  
-  ```sh
-  cd packages/api
-  cp .env.dist .env
-  yarn install
-  yarn dev
-  ```
-- **Worker:**  
-  ```sh
-  cd packages/worker
-  cp .env.dist .env
-  yarn
-  yarn dev
-  ```
-- **Cron:**  
-  ```sh
-  cd packages/cron
-  cp .env.dist .env
-  yarn
-  yarn start
-  ```
+Or run each package separately — see the `dev` script in each `package.json`.
 
 ## License
 
-This project is licensed under a source-available license with restrictions on offering it as a hosted service.
-
-This means it’s free and open for personal or commercial use, but you can’t resell it as a hosted service.
+Source-available with restrictions on reselling as a hosted service. Free for personal and commercial self-hosted use.

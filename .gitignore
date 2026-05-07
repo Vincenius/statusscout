@@ -6,3 +6,5 @@ node_modules/
 lerna-debug.log
 redis.conf
 packages/tmp
+.claude
+writing-style-guide.md

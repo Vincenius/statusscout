@@ -20,7 +20,6 @@ export const runHeaderCheck = async ({ uri, id, websiteId, createdAt, quickcheck
     const res = await fetch(uri, { redirect: 'follow' });
     const headers = {};
 
-    // convert Headers to plain object (lowercased keys)
     for (const [key, value] of res.headers.entries()) {
       headers[key.toLowerCase()] = value;
     }
@@ -32,10 +31,47 @@ export const runHeaderCheck = async ({ uri, id, websiteId, createdAt, quickcheck
       }
     });
 
+    const corsHeader = headers['access-control-allow-origin']
+    const corsWildcard = corsHeader === '*'
+
+    // Version disclosure — flag exact version numbers in Server, always flag X-Powered-By
+    const versionDisclosure = []
+    const serverHeader = headers['server'] || ''
+    const poweredByHeader = headers['x-powered-by'] || ''
+    if (serverHeader && /\d+\.\d+/.test(serverHeader)) {
+      versionDisclosure.push({ header: 'Server', value: serverHeader })
+    }
+    if (poweredByHeader) {
+      versionDisclosure.push({ header: 'X-Powered-By', value: poweredByHeader })
+    }
+
+    // HTTP → HTTPS redirect — only on extended/full/free to avoid extra latency on quick checks
+    let httpsRedirect = null
+    if (uri.startsWith('https://') && type !== 'quick') {
+      const httpUri = uri.replace(/^https:\/\//, 'http://')
+      try {
+        const httpRes = await fetch(httpUri, {
+          redirect: 'manual',
+          signal: AbortSignal.timeout(5000),
+        })
+        const location = httpRes.headers.get('location') || ''
+        httpsRedirect = {
+          redirects: (httpRes.status === 301 || httpRes.status === 302 || httpRes.status === 307 || httpRes.status === 308) && location.startsWith('https://'),
+          isPermanent: httpRes.status === 301 || httpRes.status === 308,
+          connectionFailed: false,
+        }
+      } catch {
+        httpsRedirect = { redirects: false, isPermanent: false, connectionFailed: true }
+      }
+    }
+
     const result = {
-      status: missingHeaders.length === 0 ? 'success' : 'fail',
+      status: missingHeaders.length === 0 && !corsWildcard && versionDisclosure.length === 0 ? 'success' : 'fail',
       details: {
-        missingHeaders
+        missingHeaders,
+        corsWildcard,
+        versionDisclosure,
+        httpsRedirect,
       },
     }
     await createCheckResult({ id, websiteId, createdAt, check: 'headers', result, quickcheckId, type })

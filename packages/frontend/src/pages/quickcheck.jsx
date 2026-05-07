@@ -97,7 +97,7 @@ function QuickCheck() {
     <Layout title="Quick Check" isPublicRoute>
       <Container size="md" py="md" px={{ base: "0", md: "md" }}>
         <Box>
-           <Title size="h1" ta="center" mb="sm">Your Quickcheck Results</Title>
+           <Title size="h1" ta="center" mb="sm">Your Security Scan Results</Title>
           {url && <Text size="xl" ta="center" mb="md">
             For <a href={url} target='_blank' rel="noopener noreferrer">{new URL(url).hostname}</a> {checks.length ? <>from  <i>{new Date(checks.length ? checks[0].createdAt : null).toLocaleString()}</i></> : <></>}
           </Text> }
@@ -111,11 +111,11 @@ function QuickCheck() {
 
           <Card withBorder shadow="sm" p="lg" radius="md" mb="md" mt="md">
             <Flex h="100%" direction="column" gap="md" p="md">
-              <Title order={2} size="h1" fw="normal" ta="center" mb="md">Sign up for monitoring and more</Title>
+              <Title order={2} size="h1" fw="normal" ta="center" mb="md">Keep monitoring — don't just scan once</Title>
               <List size="lg" spacing="sm" mb="md">
-                <List.Item>Get notifications if new issues are detected</List.Item>
-                <List.Item>Create custom test flows</List.Item>
-                <List.Item>And much more...</List.Item>
+                <List.Item>Get alerted the moment new security issues appear</List.Item>
+                <List.Item>Continuous checks every 5 minutes, 6 hours, and daily</List.Item>
+                <List.Item>Simulate signups and checkouts with custom test flows</List.Item>
               </List>
               <Button size="lg" component={Link} to={'/register'}>
                 Start Free 7-Day Trial

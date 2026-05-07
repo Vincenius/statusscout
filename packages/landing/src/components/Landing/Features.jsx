@@ -1,11 +1,11 @@
 import { Card, Stack, Text, Title, SimpleGrid, ThemeIcon, useMantineTheme, Flex } from "@mantine/core";
 import {
-  IconLinkOff,
   IconShieldLock,
-  IconChartDots3,
-  IconDeviceDesktopAnalytics,
-  IconTrendingUp,
-  IconCode,
+  IconFileAlert,
+  IconLock,
+  IconApi,
+  IconCookie,
+  IconBug,
 } from "@tabler/icons-react";
 import classes from './Landing.module.css';
 
@@ -14,40 +14,40 @@ export default function Features() {
 
   const features = [
     {
+      icon: IconFileAlert,
+      title: "Your password file might be readable by anyone",
+      description:
+        "API keys, database passwords, secret tokens. If these files are accidentally served by your app, anyone on the internet can grab them.",
+    },
+    {
+      icon: IconApi,
+      title: "Your API docs might be open to everyone",
+      description:
+        "Tools like FastAPI and Swagger publish your full API layout by default. Anyone can browse your endpoints and figure out how to break in.",
+    },
+    {
       icon: IconShieldLock,
-      title: "Protect Your Site",
+      title: "Invisible protections your app is probably missing",
       description:
-        "Catch exposed sensitive files, DNS vulnerabilities, missing security headers, and more before they put your data at risk.",
+        "There are browser-level security settings AI tools almost never turn on. We check which ones are missing and tell you exactly what to add.",
     },
     {
-      icon: IconLinkOff,
-      title: "Find Broken Links",
+      icon: IconCookie,
+      title: "Your login sessions could be hijacked",
       description:
-        "Crawl your site automatically to detect and repair dead links or bad redirects, before users find them.",
+        "Login cookies need specific security flags. Without them, attackers can steal user sessions through other holes in your site.",
     },
     {
-      icon: IconChartDots3,
-      title: "Ensure Every Journey Works",
+      icon: IconBug,
+      title: "Your error pages might be leaking your code",
       description:
-        "Simulate user flows like signups or checkouts to guarantee smooth, reliable site experiences.",
+        "When something breaks, the error page should not show file paths or stack traces. We check if your app is accidentally exposing that.",
     },
     {
-      icon: IconDeviceDesktopAnalytics,
-      title: "Stay Ahead with Monitoring",
+      icon: IconLock,
+      title: "The SSL warning that makes users leave",
       description:
-        "Get instant alerts when something breaks. Resolve issues before they impact visitors.",
-    },
-    {
-      icon: IconTrendingUp,
-      title: "Boost Visibility",
-      description:
-        "Uncover actionable SEO and accessibility insights to rank higher, reach more visitors, and deliver a smoother experience for everyone.",
-    },
-    {
-      icon: IconCode,
-      title: "Verify Integrations",
-      description:
-        "Check that tools like Google Tag Manager, analytics scripts, or marketing pixels are properly loaded and firing as expected.",
+        "When your certificate expires, browsers show a scary warning and most visitors bounce. We alert you weeks before it happens.",
     },
   ];
 

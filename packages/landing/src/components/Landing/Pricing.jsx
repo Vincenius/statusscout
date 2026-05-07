@@ -7,11 +7,8 @@ export default function Pricing() {
   return (
     <Box mt="12em" mb="12em">
       <Title size="2em" order={2} ta="center" mt="sm" mb="1em">Pricing</Title>
-      <Text c="dimmed" ta="center" fz="lg" mx="auto" maw="500px" mb="md">
-        You need continuous website monitoring and alerts?
-      </Text>
-      <Text c="dimmed" ta="center" fz="lg" mx="auto" maw="500px" mb="3em">
-        Choose between our free self-hosted option or our managed cloud service for a hassle-free experience.
+      <Text c="dimmed" ta="center" fz="lg" mx="auto" maw="560px" mb="3em">
+        Built for indie developers and vibe coders. Start with a free scan, then set up continuous monitoring so you're never caught off guard again.
       </Text>
 
       <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg" mx="auto" maw={{ base: 400, md: 'none' }}>
@@ -22,7 +19,7 @@ export default function Pricing() {
             <Text fz="2em" fw={700}>Free forever</Text>
             <Text c="dimmed" fz="sm" mb="md">You only pay for your own server.</Text>
 
-            <Text fz="sm">Deploy StatusScout to your infrastructure without any restrictions on features.</Text>
+            <Text fz="sm">Deploy StatusScout to your own infrastructure. Full feature set, no restrictions, self-managed updates.</Text>
           </Card.Section>
 
           <Card.Section mb="md" p="md">

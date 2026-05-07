@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useForm } from '@mantine/form';
-import { ActionIcon, Box, Flex, Image, Text, TextInput, ThemeIcon, Title, useMantineColorScheme } from '@mantine/core'
-import { IconArrowRight, IconSearch } from '@tabler/icons-react'
+import { ActionIcon, Anchor, Box, Flex, Image, Text, TextInput, ThemeIcon, Title, useMantineColorScheme } from '@mantine/core'
+import { IconArrowRight, IconBrandGithub, IconSearch } from '@tabler/icons-react'
 import { trackEvent } from '@/utils/trackEvent'
 import { Turnstile } from '@marsidev/react-turnstile'
 import classes from './Landing.module.css';
@@ -28,9 +28,19 @@ function normalizeUrl(value) {
   return value;
 }
 
+const PRODUCT_NAMES = ['Cursor site', 'Lovable app', 'Bolt app', 'v0 build'];
+
 export default function Hero() {
   const formRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [productIndex, setProductIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProductIndex(i => (i + 1) % PRODUCT_NAMES.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
   const { colorScheme } = useMantineColorScheme();
   const heroImage = colorScheme === 'dark'
     ? '/screenshot-dark.png'
@@ -93,11 +103,32 @@ export default function Hero() {
 
       <Flex w="100%" maw={700} direction="column" justify="space-around" gap={{ base: 'xl', md: '0' }}>
         <Title order={1} fw="100" className={classes.title}>
-          Your Website’s Health<br /><span className={classes.highlight}>All in One Place</span>
+          Your{' '}
+          <span style={{ display: 'inline-grid', verticalAlign: 'bottom' }}>
+            {PRODUCT_NAMES.map((name, i) => (
+              <span
+                key={name}
+                className={classes.highlight}
+                style={{
+                  gridColumn: 1,
+                  gridRow: 1,
+                  whiteSpace: 'nowrap',
+                  opacity: i === productIndex ? 1 : 0,
+                  transform: i === productIndex ? 'translateY(0)' : 'translateY(0.35em)',
+                  transition: 'opacity 0.5s ease, transform 0.5s ease',
+                  textAlign: 'center',
+                }}
+              >
+                {name}
+              </span>
+            ))}
+          </span>
+          {' '}is live.<br />
+          But is it safe?
         </Title>
 
         <Text size="xl" maw={600}>
-          Ensure your website runs fast, stays secure and keeps users happy. StatusScout helps you uncover broken links, security risks, and more before they hurt your business.
+          AI-built apps ship with 2.74× more vulnerabilities. StatusScout finds the exposed files, missing security headers, and more issues that AIs leave behind.
         </Text>
 
         <form onSubmit={form.onSubmit(handleSubmit)} ref={formRef}>
@@ -135,7 +166,7 @@ export default function Hero() {
             <ThemeIcon variant="light" size="md">
               <IconSearch style={{ width: '70%', height: '70%' }} />
             </ThemeIcon>
-            <Text size="lg">Check your website for free - no account needed</Text>
+            <Text size="lg">Scan your site in seconds — no account needed</Text>
           </Flex>
 
           {import.meta.env.VITE_TURNSTILE_SITE_KEY && <Box mb="lg">
@@ -146,9 +177,23 @@ export default function Hero() {
               }} />
           </Box>}
         </form>
+
+        <Anchor
+          href="https://github.com/vincenius/statusscout"
+          target="_blank"
+          rel="noopener"
+          c="dimmed"
+          size="sm"
+          mt="xs"
+        >
+          <Flex gap="xs" align="center">
+            <IconBrandGithub size={16} />
+            View on GitHub — free & open source
+          </Flex>
+        </Anchor>
       </Flex>
 
-      <Image src={heroImage} alt="Quick Check Screenshot" w={300} />
+      <Image src={heroImage} alt="StatusScout security scan screenshot" w={300} />
     </Flex>
   );
 }

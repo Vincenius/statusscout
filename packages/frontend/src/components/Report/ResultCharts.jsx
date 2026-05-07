@@ -6,7 +6,7 @@ const sizes = {
   lg: { ring: 120, text: 'lg', thickness: 12 },
 };
 
-export const LoadingChart = ({ size = 'md', label, checkState }) => {
+export const LoadingChart = ({ size = 'md', label, checkState, showLabel = true }) => {
   const s = {
     md: { ring: 64, padding: 8, text: 'sm' },
     lg: { ring: 96, padding: 12, text: 'lg' },
@@ -26,7 +26,7 @@ export const LoadingChart = ({ size = 'md', label, checkState }) => {
             </Center>
           }
         />
-        <Text size={s.text}>{label}</Text>
+        {showLabel && <Text size={s.text}>{label}</Text>}
       </Flex>
     );
   }
@@ -36,14 +36,12 @@ export const LoadingChart = ({ size = 'md', label, checkState }) => {
       <Box p={s.padding} pb="0">
         <Loader size={s.ring} />
       </Box>
-
-      <Text size={s.text}>{label}</Text>
+      {showLabel && <Text size={s.text}>{label}</Text>}
     </Flex>
-
   );
 }
 
-export function SSLChart({ status, size = 'md' }) {
+export function SSLChart({ status, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   return (
     <Flex direction="column" align="center">
@@ -59,33 +57,59 @@ export function SSLChart({ status, size = 'md' }) {
           </Center>
         }
       />
-      <Text size={s.text}>SSL Certificate</Text>
+      {showLabel && <Text size={s.text}>SSL Certificate</Text>}
     </Flex>
   );
 }
 
-export function HeaderChart({ status, missingHeaders, size = 'md' }) {
+export function HeaderChart({ status, missingHeaders, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
+  const isAllGood = missingHeaders.length === 0;
   return (
     <Flex direction="column" align="center">
       <RingProgress
         size={s.ring}
         roundCaps
         thickness={s.thickness}
-        sections={[{ value: 100, color: missingHeaders.length === 0 ? 'green' : 'yellow' }]}
+        sections={[{ value: 100, color: isAllGood ? 'green' : 'yellow' }]}
         label={
           <Center>
-            {status === 'success' && <IconCheck size={s.icon} stroke={3} color="green" />}
-            {status !== 'success' && <Text c="yellow" fw="bold" size={s.text}>{missingHeaders.length}</Text>}
+            {isAllGood && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {!isAllGood && <Text c="yellow" fw="bold" size={s.text}>{missingHeaders.length}</Text>}
           </Center>
         }
       />
-      <Text size={s.text}>HTTP Headers</Text>
+      {showLabel && <Text size={s.text}>Security Headers</Text>}
     </Flex>
   );
 }
 
-export function DnsChart({ status, details, size = 'md' }) {
+export function HeaderWarningsChart({ details, size = 'md', showLabel = true }) {
+  const s = sizes[size] || sizes.md;
+  const warningCount =
+    (details?.versionDisclosure?.length || 0) +
+    (details?.httpsRedirect && !details.httpsRedirect.redirects && !details.httpsRedirect.connectionFailed ? 1 : 0) +
+    (details?.corsWildcard ? 1 : 0);
+  return (
+    <Flex direction="column" align="center">
+      <RingProgress
+        size={s.ring}
+        roundCaps
+        thickness={s.thickness}
+        sections={[{ value: 100, color: warningCount === 0 ? 'green' : 'orange' }]}
+        label={
+          <Center>
+            {warningCount === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {warningCount > 0 && <Text c="orange" fw="bold" size={s.text}>{warningCount}</Text>}
+          </Center>
+        }
+      />
+      {showLabel && <Text size={s.text}>Header Warnings</Text>}
+    </Flex>
+  );
+}
+
+export function DnsChart({ status, details, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   const failedDns = details ? Object.values(details).filter(d => !d.success) : [];
 
@@ -98,17 +122,17 @@ export function DnsChart({ status, details, size = 'md' }) {
         sections={[{ value: 100, color: failedDns.length === 0 ? 'green' : 'yellow' }]}
         label={
           <Center>
-            {status === 'success' && <IconCheck size={s.icon} stroke={3} color="green" />}
-            {status !== 'success' && <Text c="yellow" fw="bold" size={s.text}>{failedDns.length}</Text>}
+            {failedDns.length === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {failedDns.length > 0 && <Text c="yellow" fw="bold" size={s.text}>{failedDns.length}</Text>}
           </Center>
         }
       />
-      <Text size={s.text}>DNS Records</Text>
+      {showLabel && <Text size={s.text}>DNS Records</Text>}
     </Flex>
   );
 }
 
-export function FuzzChart({ status, files, size = 'md' }) {
+export function FuzzChart({ status, files, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   return (
     <Flex direction="column" align="center">
@@ -119,17 +143,17 @@ export function FuzzChart({ status, files, size = 'md' }) {
         sections={[{ value: 100, color: files.length === 0 ? 'green' : 'yellow' }]}
         label={
           <Center>
-            {status === 'success' && <IconCheck size={s.icon} stroke={3} color="green" />}
-            {status !== 'success' && <Text c="yellow" fw="bold" size={s.text}>{files.length}</Text>}
+            {files.length === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {files.length > 0 && <Text c="yellow" fw="bold" size={s.text}>{files.length}</Text>}
           </Center>
         }
       />
-      <Text size={s.text}>Sensitive Files</Text>
+      {showLabel && <Text size={s.text}>Sensitive Files</Text>}
     </Flex>
   );
 }
 
-export function PerformanceChart({ performances, size = 'md' }) {
+export function PerformanceChart({ performances, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   return (
     <Flex direction="column" align="center">
@@ -149,13 +173,12 @@ export function PerformanceChart({ performances, size = 'md' }) {
           </Center>
         }
       />
-      <Text size={s.text}>Performance</Text>
+      {showLabel && <Text size={s.text}>Performance</Text>}
     </Flex>
   );
 }
 
-export function SEOChart({ score, size = 'md' }) {
-
+export function SEOChart({ score, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   return (
     <Flex direction="column" align="center">
@@ -172,12 +195,12 @@ export function SEOChart({ score, size = 'md' }) {
           </Center>
         }
       />
-      <Text size={s.text}>SEO Score</Text>
+      {showLabel && <Text size={s.text}>SEO Score</Text>}
     </Flex>
   );
 }
 
-export function BrokenLinksChart({ brokenLinks, size = 'md' }) {
+export function BrokenLinksChart({ brokenLinks, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   return (
     <Flex direction="column" align="center">
@@ -188,16 +211,17 @@ export function BrokenLinksChart({ brokenLinks, size = 'md' }) {
         sections={[{ value: 100, color: brokenLinks.length === 0 ? 'green' : 'yellow' }]}
         label={
           <Center>
-            <Text c={brokenLinks.length === 0 ? 'green' : 'yellow'} fw="bold" size={s.text}>{brokenLinks.length}</Text>
+            {brokenLinks.length === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {brokenLinks.length > 0 && <Text c="yellow" fw="bold" size={s.text}>{brokenLinks.length}</Text>}
           </Center>
         }
       />
-      <Text size={s.text}>Broken Links</Text>
+      {showLabel && <Text size={s.text}>Broken Links</Text>}
     </Flex>
   );
 }
 
-export function AccessibilityChart({ score, size = 'md' }) {
+export function AccessibilityChart({ score, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   return (
     <Flex direction="column" align="center">
@@ -214,12 +238,38 @@ export function AccessibilityChart({ score, size = 'md' }) {
           </Center>
         }
       />
-      <Text size={s.text}>Accessibility</Text>
+      {showLabel && <Text size={s.text}>Accessibility</Text>}
     </Flex>
   );
 }
 
-export function CustomFlowsChart({ checks, customFlowLength, size = 'md' }) {
+export function PageAnalysisChart({ details, size = 'md', showLabel = true }) {
+  const s = sizes[size] || sizes.md;
+  const issueCount =
+    (details?.verboseErrors ? 1 : 0) +
+    (details?.sriIssues?.length || 0) +
+    (details?.csrfIssues?.length || 0) +
+    (details?.dirListingIssues?.length || 0);
+  return (
+    <Flex direction="column" align="center">
+      <RingProgress
+        size={s.ring}
+        roundCaps
+        thickness={s.thickness}
+        sections={[{ value: 100, color: issueCount === 0 ? 'green' : 'yellow' }]}
+        label={
+          <Center>
+            {issueCount === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {issueCount > 0 && <Text c="yellow" fw="bold" size={s.text}>{issueCount}</Text>}
+          </Center>
+        }
+      />
+      {showLabel && <Text size={s.text}>Page Security</Text>}
+    </Flex>
+  );
+}
+
+export function ApiDocsChart({ status, exposed, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   return (
     <Flex direction="column" align="center">
@@ -227,19 +277,87 @@ export function CustomFlowsChart({ checks, customFlowLength, size = 'md' }) {
         size={s.ring}
         roundCaps
         thickness={s.thickness}
-        sections={[
-          { value: (checks.filter(c => c?.result?.status === 'success').length / customFlowLength) * 100, color: 'green' },
-          { value: (checks.filter(c => c?.result?.status !== 'success').length / customFlowLength) * 100, color: 'red' },
-        ].filter(s => s.value > 0)}
+        sections={[{ value: 100, color: exposed.length === 0 ? 'green' : 'red' }]}
         label={
           <Center>
-            <Text fw="bold" size={s.text}>
-              {checks.filter(c => c?.result?.status === 'success').length} / {customFlowLength}
-            </Text>
+            {exposed.length === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {exposed.length > 0 && <Text c="red" fw="bold" size={s.text}>{exposed.length}</Text>}
           </Center>
         }
       />
-      <Text size={s.text}>Custom Flows</Text>
+      {showLabel && <Text size={s.text}>Exposed APIs</Text>}
+    </Flex>
+  );
+}
+
+export function CookiesChart({ status, issues, size = 'md', showLabel = true }) {
+  const s = sizes[size] || sizes.md;
+  return (
+    <Flex direction="column" align="center">
+      <RingProgress
+        size={s.ring}
+        roundCaps
+        thickness={s.thickness}
+        sections={[{ value: 100, color: issues.length === 0 ? 'green' : 'yellow' }]}
+        label={
+          <Center>
+            {issues.length === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {issues.length > 0 && <Text c="yellow" fw="bold" size={s.text}>{issues.length}</Text>}
+          </Center>
+        }
+      />
+      {showLabel && <Text size={s.text}>Cookie Security</Text>}
+    </Flex>
+  );
+}
+
+export function MixedContentChart({ status, issues, size = 'md', showLabel = true }) {
+  const s = sizes[size] || sizes.md;
+  return (
+    <Flex direction="column" align="center">
+      <RingProgress
+        size={s.ring}
+        roundCaps
+        thickness={s.thickness}
+        sections={[{ value: 100, color: issues.length === 0 ? 'green' : 'yellow' }]}
+        label={
+          <Center>
+            {issues.length === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {issues.length > 0 && <Text c="yellow" fw="bold" size={s.text}>{issues.length}</Text>}
+          </Center>
+        }
+      />
+      {showLabel && <Text size={s.text}>Mixed Content</Text>}
+    </Flex>
+  );
+}
+
+export function CustomFlowsChart({ checks, customFlowLength, size = 'md', showLabel = true }) {
+  const s = sizes[size] || sizes.md;
+  const passed = checks.filter(c => c?.result?.status === 'success').length;
+  const allPassed = customFlowLength > 0 && passed === customFlowLength;
+  return (
+    <Flex direction="column" align="center">
+      <RingProgress
+        size={s.ring}
+        roundCaps
+        thickness={s.thickness}
+        sections={customFlowLength === 0
+          ? [{ value: 100, color: 'gray' }]
+          : [
+              { value: (passed / customFlowLength) * 100, color: 'green' },
+              { value: ((customFlowLength - passed) / customFlowLength) * 100, color: 'red' },
+            ].filter(s => s.value > 0)
+        }
+        label={
+          <Center>
+            {customFlowLength === 0 && <Text c="dimmed" fw="bold" size={s.text}>—</Text>}
+            {customFlowLength > 0 && allPassed && <IconCheck size={s.icon} stroke={3} color="green" />}
+            {customFlowLength > 0 && !allPassed && <Text fw="bold" size={s.text}>{passed} / {customFlowLength}</Text>}
+          </Center>
+        }
+      />
+      {showLabel && <Text size={s.text}>Custom Flows</Text>}
     </Flex>
   );
 }

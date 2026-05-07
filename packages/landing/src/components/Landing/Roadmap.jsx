@@ -4,7 +4,7 @@ import classes from "./Landing.module.css";
 
 export default function Roadmap({
   heading = "Product Roadmap",
-  subheading = "Here’s what we’ve built and what’s coming next.",
+  subheading = "What’s shipped and what’s next for security-first monitoring.",
   items = defaultItems,
 }) {
   return (
@@ -79,32 +79,32 @@ export default function Roadmap({
 // Default roadmap items
 const defaultItems = [
   {
-    title: "Website Health Scanner",
-    description: "Core features: security checks, performance insights, SEO audits, DNS checks, a11y checks, and broken link detection.",
+    title: "Security & Health Scanner",
+    description: "10 checks in one scan: SSL, security headers, exposed files, cookie security, exposed API docs, DNS records, mixed content, page security issues, and broken links. Free, no signup required.",
     icon: <IconCheck size={18} color="green" />,
     completed: true,
   },
   {
-    title: "Monitoring",
-    description: "Get notified instantly when something breaks on your site.",
+    title: "Continuous Monitoring & Alerts",
+    description: "Automated checks every 5 minutes, 6 hours, and daily. Get alerted the moment something breaks via email, SMS, or ntfy.",
     icon: <IconBellRinging size={18} color="green" />,
     completed: true,
   },
   {
     title: "Custom Test Flows",
-    description: "Simulate critical user journeys to ensure smooth experiences.",
+    description: "Define multi-step Playwright flows to simulate signups, checkouts, and critical user journeys and get alerted when they break.",
     icon: <IconCode size={18} color="green" />,
     completed: true,
   },
   {
-    title: "Advanced Security Checks",
-    description: "Codebase vulnerability scans.",
+    title: "Dependency Vulnerability Scanning",
+    description: "Detect outdated or vulnerable packages in your app before they become a problem.",
     icon: <IconShieldLock size={18} color="orange" />,
     completed: false,
   },
   {
     title: "API Access",
-    description: "Trigger checks via API and access data programmatically.",
+    description: "Trigger scans and pull results programmatically. Integrate StatusScout into your CI/CD pipeline.",
     icon: <IconDeviceLaptop size={18} color="orange" />,
     completed: false,
   },

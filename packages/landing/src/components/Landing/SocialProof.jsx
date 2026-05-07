@@ -8,32 +8,32 @@ export default function SocialProof({ }) {
       <Box className={classes.bgImage}></Box>
 
       <Title order={2} mb="md" position="relative" fw="lighter">
-        Delived insights for over <b>600+</b> websites and counting
+        Delivered security insights for over <b>10k+</b> websites and counting
       </Title>
       <SimpleGrid cols={{ base: 1, sm: 2, md: 2 }} spacing="lg" mt="xl">
         <Flex gap="md">
           <ThemeIcon variant="light" size="md">
             <IconStar size="70%" stroke={1.5} />
           </ThemeIcon>
-          <Text>Free website check</Text>
+          <Text>Free scan - no signup required</Text>
         </Flex>
         <Flex gap="md">
           <ThemeIcon variant="light" size="md">
             <IconStar size="70%" stroke={1.5} />
           </ThemeIcon>
-          <Text>Open-Source</Text>
+          <Text>Open-source on GitHub</Text>
         </Flex>
         <Flex gap="md">
           <ThemeIcon variant="light" size="md">
             <IconStar size="70%" stroke={1.5} />
           </ThemeIcon>
-          <Text>Hosted in Europe</Text>
+          <Text>Self-hostable, you own your data</Text>
         </Flex>
         <Flex gap="md">
           <ThemeIcon variant="light" size="md">
             <IconStar size="70%" stroke={1.5} />
           </ThemeIcon>
-          <Text>Runs on renewable energy</Text>
+          <Text>Continuous monitoring</Text>
         </Flex>
       </SimpleGrid>
     </Box>

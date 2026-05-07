@@ -31,6 +31,7 @@ function normalizeUrl(value) {
 export default function Hero() {
   const formRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  console.log('[Hero] VITE_TURNSTILE_SITE_KEY:', import.meta.env.VITE_TURNSTILE_SITE_KEY);
   const { colorScheme } = useMantineColorScheme();
   const heroImage = colorScheme === 'dark'
     ? '/screenshot-dark.png'

@@ -90,7 +90,7 @@ async function cleanUp() {
     weekAgo.setDate(weekAgo.getDate() - 7)
 
     monthAgo.setHours(0, 0, 0, 0)
-    monthAgo.setDate(monthAgo.getMonth() - 1)
+    monthAgo.setMonth(monthAgo.getMonth() - 1)
 
     const db = await connectDB()
     const quickchecks = await db.collection('quickchecks')
@@ -127,7 +127,6 @@ async function runTrialCheck() {
       'subscription.plan': 'trial',
       'subscription.expiresAt': { $gte: startOfTomorrow, $lte: endOfTomorrow },
       'unsubscribed': { $ne: true },
-      'confirmed': true
     }).toArray()
 
     console.log('checking for users with trial ending tomorrow, found', users.length)
@@ -162,7 +161,6 @@ async function runFeedbackCheck() {
       confirmed: true,
       'createdAt': { $gte: startOfThreeDaysAgo, $lte: endOfThreeDaysAgo },
       'unsubscribed': { $ne: true },
-      'confirmed': true
     }).toArray()
 
     console.log('checking for users three days after signup, found', users.length)

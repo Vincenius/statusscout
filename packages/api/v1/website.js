@@ -156,24 +156,31 @@ export default async function userRoutes(fastify, opts) {
     { preValidation: fastifyPassport.authenticate('session', { failureRedirect: '/login' }) },
     async (request, reply) => {
       try {
+        const user = request.user
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const thirtyDaysAgoIso = thirtyDaysAgo.toISOString();
 
         const db = await connectDB()
 
+        const websites = await db.collection('websites').find({ userId: user._id, deleted: { $ne: true } }).toArray()
+        const websiteIds = websites.map(w => w._id)
+
         const [count, failedCount, [oldestCheck]] = await Promise.all([
           db.collection('checks').countDocuments({
+            websiteId: { $in: websiteIds },
             check: 'uptime',
             createdAt: { $gte: thirtyDaysAgoIso }
           }),
           db.collection('checks').countDocuments({
+            websiteId: { $in: websiteIds },
             check: 'uptime',
             'result.status': 'fail',
             createdAt: { $gte: thirtyDaysAgoIso }
           }),
           db.collection('checks')
             .find({
+              websiteId: { $in: websiteIds },
               check: 'uptime',
               createdAt: { $gte: thirtyDaysAgoIso }
             })

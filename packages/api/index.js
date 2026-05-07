@@ -54,12 +54,19 @@ fastifyPassport.use(
           return done(null, false, { message: 'Invalid login' });
         }
 
-        const passHash = CryptoJS.SHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
-        if (user.password !== passHash) {
+        const newHash = CryptoJS.HmacSHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+        const legacyHash = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex)
+
+        if (user.password === newHash) {
+          return done(null, user);
+        } else if (user.password === legacyHash) {
+          // Migrate legacy unsalted hash to HmacSHA256 transparently
+          const db2 = await connectDB();
+          await db2.collection('users').updateOne({ _id: user._id }, { $set: { password: newHash } });
+          return done(null, { ...user, password: newHash });
+        } else {
           return done(null, false, { message: 'Invalid login' });
         }
-
-        return done(null, user);
       } catch (err) {
         return done(err);
       }

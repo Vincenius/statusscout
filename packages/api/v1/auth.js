@@ -42,7 +42,7 @@ export default async function authRoutes(fastify, opts) {
         return { error: 'Email already registered' };
       }
 
-      const passHash = CryptoJS.SHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+      const passHash = CryptoJS.HmacSHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
       const token = uuidv4()
       const subscription = process.env.STRIPE_SECRET_KEY ? {
         plan: 'trial',
@@ -137,7 +137,7 @@ export default async function authRoutes(fastify, opts) {
         return { error: true };
       }
 
-      const hashedPassword = CryptoJS.SHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+      const hashedPassword = CryptoJS.HmacSHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
       await db.collection('users').updateOne({ resetPasswordToken: token }, {
         $set: {
           password: hashedPassword,

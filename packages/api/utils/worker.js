@@ -37,6 +37,6 @@ export const runJob = async (body) => {
     return { message: 'Job enqueued', waitingIndex, jobId: job.id }
   } catch (err) {
     console.error('Error enqueuing job:', err)
-    reply.code(500).send({ error: 'Failed to enqueue job' })
+    throw err
   }
 }

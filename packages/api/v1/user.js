@@ -249,13 +249,15 @@ export default async function userRoutes(fastify, opts) {
 
         const user = request.user
 
-        const hashedCurrentPassword = CryptoJS.SHA256(currentPassword, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+        const hashedCurrentPassword = CryptoJS.HmacSHA256(currentPassword, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+        const legacyCurrentHash = CryptoJS.SHA256(currentPassword).toString(CryptoJS.enc.Hex)
+        const passwordMatches = hashedCurrentPassword === user.password || legacyCurrentHash === user.password
 
-        if (hashedCurrentPassword !== user.password) {
+        if (!passwordMatches) {
           return reply.code(403).send({ error: 'Current password is incorrect' })
         } else {
           const db = await connectDB()
-          const hashedNewPassword = CryptoJS.SHA256(newPassword, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+          const hashedNewPassword = CryptoJS.HmacSHA256(newPassword, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
           await db.collection('users').updateOne({ _id: user._id }, {
             $set: { password: hashedNewPassword }
           }, { returnDocument: 'after' })

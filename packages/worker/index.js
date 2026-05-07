@@ -23,7 +23,9 @@ export const run = async ({ id, triggerName, type = 'quick', websiteId, quickche
     const createdAt = new Date().toISOString()
     console.log(createdAt, `run ${type} status check for`, website.domain)
 
-    await db.collection('websites').updateOne({ _id: website._id }, { $set: { lastCheckId: id } })
+    if (website._id) {
+      await db.collection('websites').updateOne({ _id: website._id }, { $set: { lastCheckId: id } })
+    }
 
     const baseParams = { id, uri: website.domain, db, websiteId: website._id, quickcheckId, createdAt, type }
 

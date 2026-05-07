@@ -48,7 +48,7 @@ const checkSubdomains = async (subs) => {
 }
 
 
-async function checkRecord(type, name = domain) {
+async function checkRecord(type, name) {
   try {
     return await dns.resolve(name, type);
   } catch {

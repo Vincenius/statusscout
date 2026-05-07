@@ -90,7 +90,7 @@ export const getIssueHistory = (checks) => {
       result: {
         status: issues.length === 0
           ? 'success'
-          : issues.filter(i => i.type === 'ssl').length // handle error types
+          : issues.filter(i => i.check === 'ssl').length // handle error types
             ? 'error'
             : 'warning'
       }

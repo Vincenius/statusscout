@@ -26,7 +26,7 @@ function get404Probability(html) {
 export const runFuzzCheck = async ({ uri, id, db, websiteId, createdAt, type, quickcheckId }) => {
   console.log(`Running fuzz check for ${uri}`)
   const [prevCheck] = await db.collection('checks')
-    .find({ check: 'fuzz' })
+    .find({ check: 'fuzz', websiteId })
     .sort({ createdAt: -1 })
     .limit(1)
     .toArray();

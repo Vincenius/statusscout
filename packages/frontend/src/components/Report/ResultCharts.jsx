@@ -153,53 +153,6 @@ export function FuzzChart({ status, files, size = 'md', showLabel = true }) {
   );
 }
 
-export function PerformanceChart({ performances, size = 'md', showLabel = true }) {
-  const s = sizes[size] || sizes.md;
-  return (
-    <Flex direction="column" align="center">
-      <RingProgress
-        size={s.ring}
-        roundCaps
-        thickness={s.thickness}
-        sections={[
-          { value: (performances.filter(p => p === 'FAST').length / 6) * 100, color: 'green' },
-          { value: (performances.filter(p => p === 'AVERAGE').length / 6) * 100, color: 'yellow' },
-          { value: (performances.filter(p => p === 'SLOW').length / 6) * 100, color: 'red' },
-          { value: ((performances.filter(p => p === 'NONE').length + (6 - performances.length)) / 6) * 100, color: 'gray' },
-        ].filter(s => s.value > 0)}
-        label={
-          <Center>
-            <Text fw="bold" size={s.text}>{performances.filter(p => p === 'FAST').length} / 6</Text>
-          </Center>
-        }
-      />
-      {showLabel && <Text size={s.text}>Performance</Text>}
-    </Flex>
-  );
-}
-
-export function SEOChart({ score, size = 'md', showLabel = true }) {
-  const s = sizes[size] || sizes.md;
-  return (
-    <Flex direction="column" align="center">
-      <RingProgress
-        size={s.ring}
-        roundCaps
-        thickness={s.thickness}
-        sections={[
-          { value: score, color: 'green' },
-        ].filter(s => s.value > 0)}
-        label={
-          <Center>
-            <Text c={score >= 90 ? 'green' : 'yellow'} fw="bold" size={s.text}>{score}%</Text>
-          </Center>
-        }
-      />
-      {showLabel && <Text size={s.text}>SEO Score</Text>}
-    </Flex>
-  );
-}
-
 export function BrokenLinksChart({ brokenLinks, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   return (
@@ -217,28 +170,6 @@ export function BrokenLinksChart({ brokenLinks, size = 'md', showLabel = true })
         }
       />
       {showLabel && <Text size={s.text}>Broken Links</Text>}
-    </Flex>
-  );
-}
-
-export function AccessibilityChart({ score, size = 'md', showLabel = true }) {
-  const s = sizes[size] || sizes.md;
-  return (
-    <Flex direction="column" align="center">
-      <RingProgress
-        size={s.ring}
-        roundCaps
-        thickness={s.thickness}
-        sections={[
-          { value: score, color: 'green' },
-        ].filter(s => s.value > 0)}
-        label={
-          <Center>
-            <Text c={score >= 90 ? 'green' : 'yellow'} fw="bold" size={s.text}>{score}%</Text>
-          </Center>
-        }
-      />
-      {showLabel && <Text size={s.text}>Accessibility</Text>}
     </Flex>
   );
 }

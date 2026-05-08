@@ -62,10 +62,8 @@ const getCustomIssues = ({ checks }) => {
 export const getIssueHistory = (checks) => {
   const sslIssues = getIssues({ checks, type: 'ssl', getCurrIssues: curr => (curr?.result?.details?.valid ? [] : ['Invalid SSL Certificate']) })
   const headerIssues = getIssues({ checks, type: 'headers', getCurrIssues: curr => (curr?.result?.details?.missingHeaders || []) })
+  const cookieIssues = getIssues({ checks, type: 'cookies', getCurrIssues: curr => (curr?.result?.details?.issues || []).map(i => `${i.cookie}: missing ${i.missingFlags.join(', ')}`) })
   const fuzzIssues = getIssues({ checks, type: 'fuzz', getCurrIssues: curr => (curr?.result?.details?.files || []).map(i => i.file) })
-  const seoIssues = getIssues({ checks, type: 'seo', getCurrIssues: curr => (curr?.result?.details?.items || []).map(i => i.title) })
-  const a11yIssues = getIssues({ checks, type: 'a11y', getCurrIssues: curr => (curr?.result?.details?.items || []).map(i => i.title) })
-  const linkIssues = getIssues({ checks, type: 'links', getCurrIssues: curr => (curr?.result?.details || []).map(i => `${i.parent} -> ${i.url}`) })
   const dnsIssues = getIssues({ checks, type: 'dns', getCurrIssues: curr => (Object.entries(curr?.result?.details || {}) || []).filter(([key, val]) => !val.success && key !== 'subdomains').map(([key]) => dnsChecksInfo[key].name) })
   const subdomainIssues = getIssues({
     checks, type: 'dns',
@@ -73,10 +71,24 @@ export const getIssueHistory = (checks) => {
       .filter(([key, val]) => !val.success && key === 'subdomains')[0]?.[1]?.issues || [])
       .map((subdomain) => subdomain.text)
   })
+  const mixedContentIssues = getIssues({ checks, type: 'mixedcontent', getCurrIssues: curr => (curr?.result?.details?.issues || []) })
+  const pageAnalysisIssues = getIssues({
+    checks, type: 'pageanalysis',
+    getCurrIssues: curr => {
+      const d = curr?.result?.details || {}
+      const issues = []
+      if (d.verboseErrors) issues.push('Verbose error messages exposed')
+      issues.push(...(d.sriIssues || []).map(url => `Missing SRI: ${url}`))
+      issues.push(...(d.csrfIssues || []).map(action => `Form missing CSRF protection: ${action}`))
+      issues.push(...(d.dirListingIssues || []).map(path => `Directory listing exposed: ${path}`))
+      return issues
+    }
+  })
+  const apiDocsIssues = getIssues({ checks, type: 'apidocs', getCurrIssues: curr => (curr?.result?.details?.exposed || []).map(path => `API documentation exposed: ${path}`) })
+  const linkIssues = getIssues({ checks, type: 'links', getCurrIssues: curr => (curr?.result?.details || []).map(i => `${i.parent} -> ${i.url}`) })
   const customIssues = getCustomIssues({ checks })
-  // TODO performance?
 
-  const allIssues = [...sslIssues, ...headerIssues, ...fuzzIssues, ...seoIssues, ...a11yIssues, ...linkIssues, ...dnsIssues, ...subdomainIssues, ...customIssues]
+  const allIssues = [...sslIssues, ...headerIssues, ...cookieIssues, ...fuzzIssues, ...dnsIssues, ...subdomainIssues, ...mixedContentIssues, ...pageAnalysisIssues, ...apiDocsIssues, ...linkIssues, ...customIssues]
   const checkDates = checks.map(c => c.createdAt)
   const uniqueDates = [...new Set(checkDates)].sort((a, b) => a - b)
 

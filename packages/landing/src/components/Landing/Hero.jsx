@@ -128,7 +128,7 @@ export default function Hero() {
         </Title>
 
         <Text size="xl" maw={600}>
-          AI-built apps ship with 2.74× more vulnerabilities. StatusScout finds exposed files, missing security headers, and more issues that AIs leave behind.
+          AI-built apps ship with 2.74× more vulnerabilities. StatusScout finds the security holes AIs leave behind and gives you ready-to-paste prompts to fix each one.
         </Text>
 
         <form onSubmit={form.onSubmit(handleSubmit)} ref={formRef}>

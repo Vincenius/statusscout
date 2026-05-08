@@ -1,5 +1,5 @@
 import { Table, Text, Title, Stack, Box, Flex, List, Card } from "@mantine/core";
-import { IconCheck, IconCode, IconBellRinging, IconShieldLock, IconDeviceLaptop } from "@tabler/icons-react";
+import { IconCheck, IconCode, IconBellRinging, IconShieldLock, IconDeviceLaptop, IconSparkles } from "@tabler/icons-react";
 import classes from "./Landing.module.css";
 
 export default function Roadmap({

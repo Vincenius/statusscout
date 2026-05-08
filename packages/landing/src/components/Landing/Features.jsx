@@ -6,6 +6,7 @@ import {
   IconApi,
   IconCookie,
   IconBug,
+  IconSparkles,
 } from "@tabler/icons-react";
 import classes from './Landing.module.css';
 
@@ -44,10 +45,10 @@ export default function Features() {
         "When something breaks, the error page should not show file paths or stack traces. We check if your app is accidentally exposing that.",
     },
     {
-      icon: IconLock,
-      title: "The SSL warning that makes users leave",
+      icon: IconSparkles,
+      title: "Every issue comes with an AI fix prompt",
       description:
-        "When your certificate expires, browsers show a scary warning and most visitors bounce. We alert you weeks before it happens.",
+        "Each problem we find includes a ready-made prompt for Cursor, Claude, or ChatGPT. Copy it, paste it, and get step-by-step fix instructions — no security expertise needed.",
     },
   ];
 

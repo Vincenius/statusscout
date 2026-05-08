@@ -33,7 +33,7 @@ export default function SocialProof({ }) {
           <ThemeIcon variant="light" size="md">
             <IconStar size="70%" stroke={1.5} />
           </ThemeIcon>
-          <Text>Continuous monitoring</Text>
+          <Text>AI fix prompts for every issue</Text>
         </Flex>
       </SimpleGrid>
     </Box>

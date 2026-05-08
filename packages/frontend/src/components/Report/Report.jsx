@@ -1,4 +1,4 @@
-import { Accordion, Badge, Blockquote, Box, Button, Card, Center, Flex, List, SimpleGrid, Table, Text, ThemeIcon, Title } from '@mantine/core'
+import { Accordion, Badge, Blockquote, Box, Button, Card, Center, Code, Flex, Group, List, Modal, ScrollArea, SimpleGrid, Table, Text, ThemeIcon, Title, Tooltip } from '@mantine/core'
 import {
   SSLChart,
   HeaderChart,
@@ -16,11 +16,24 @@ import {
 import { getRecentChecks } from '@/utils/checks'
 import recommendedHeaders from '@/utils/headers'
 import { useRef, useState } from 'react'
+import { useDisclosure } from '@mantine/hooks'
 import { Link } from 'react-router-dom'
 import { STEP_TYPES } from '@/utils/customFlows';
-import { IconCheck, IconX } from '@tabler/icons-react'
+import { IconCheck, IconX, IconSparkles, IconEye, IconCopy } from '@tabler/icons-react'
 import { useAuthSWR } from '@/utils/useAuthSWR'
 import { dnsChecksInfo } from '@statusscout/shared'
+import {
+  generateSSLPrompt,
+  generateHeadersPrompt,
+  generateHeaderWarningsPrompt,
+  generateFuzzPrompt,
+  generateLinksPrompt,
+  generateDnsPrompt,
+  generateCookiesPrompt,
+  generateMixedContentPrompt,
+  generatePageAnalysisPrompt,
+  generateApiDocsPrompt,
+} from '@/utils/promptTemplates'
 
 const LinksTable = ({ items, updateIgnoreList, loading, ignoreAction }) => {
   if (!items.length) {
@@ -57,6 +70,32 @@ const LinksTable = ({ items, updateIgnoreList, loading, ignoreAction }) => {
       </Table.Tr>)}
     </Table.Tbody>
   </Table>
+}
+
+function CopyPromptButton({ prompt }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(prompt)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <Flex justify="flex-end" mt="md">
+      <Tooltip label="Paste this prompt into ChatGPT, Claude, or any AI to get step-by-step fix instructions" multiline w={260} position="top-end">
+        <Button
+          variant="subtle"
+          size="xs"
+          leftSection={copied ? <IconCheck size={13} /> : <IconSparkles size={13} />}
+          onClick={handleCopy}
+          color={copied ? 'green' : 'gray'}
+        >
+          {copied ? 'Prompt copied!' : 'Copy AI fix prompt'}
+        </Button>
+      </Tooltip>
+    </Flex>
+  )
 }
 
 function Report({ website, checks, status, isQuickCheck = false }) {
@@ -262,6 +301,9 @@ function Report({ website, checks, status, isQuickCheck = false }) {
               {sslCheck && sslCheck.result.status !== 'success' && <Text size="sm" mt="xs" c="red">Certificate issue detected.</Text>}
             </Box>
           </Flex>
+          {sslCheck && sslCheck.result.status !== 'success' && (
+            <CopyPromptButton prompt={generateSSLPrompt(website.domain, sslCheck.result.details)} />
+          )}
         </Card.Section>
 
         <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={fuzzRef}>
@@ -307,6 +349,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
                 </Button>
               </Center>
             )}
+            <CopyPromptButton prompt={generateFuzzPrompt(website.domain, exposedFiles)} />
           </>}
         </Card.Section>
 
@@ -352,6 +395,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
                   </>}
                 </>
               }
+              <CopyPromptButton prompt={generateLinksPrompt(website.domain, linkCheck.result.details)} />
             </List>
           }
         </Card.Section>
@@ -401,6 +445,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
                 ))}
               </Table.Tbody>
             </Table>
+            <CopyPromptButton prompt={generateDnsPrompt(website.domain, dnsCheck.result.details)} />
           </>}
         </Card.Section>
 
@@ -441,6 +486,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
                 <Button onClick={() => setExpandHeaders(true)}>Show All</Button>
               </Center>
             )}
+            <CopyPromptButton prompt={generateHeadersPrompt(website.domain, missingHeaders)} />
           </>}
         </Card.Section>
 
@@ -491,6 +537,9 @@ function Report({ website, checks, status, isQuickCheck = false }) {
               <Text size="sm">Your server allows any origin to read its responses. This is safe for fully public APIs, but dangerous if your endpoints handle authenticated data or cookies — it lets any website make requests to your API on behalf of your users.</Text>
             </Blockquote>
           )}
+          {hasHeaderWarnings && headersCheck && (
+            <CopyPromptButton prompt={generateHeaderWarningsPrompt(website.domain, headersCheck.result.details)} />
+          )}
         </Card.Section>
 
         <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={cookiesRef}>
@@ -526,6 +575,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
                 ))}
               </Table.Tbody>
             </Table>
+            <CopyPromptButton prompt={generateCookiesPrompt(website.domain, cookieCheck.result.details.issues)} />
           </>}
         </Card.Section>
 
@@ -558,6 +608,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
                 ))}
               </Table.Tbody>
             </Table>
+            <CopyPromptButton prompt={generateMixedContentPrompt(website.domain, mixedContentCheck.result.details.issues)} />
           </>}
         </Card.Section>
 
@@ -620,6 +671,9 @@ function Report({ website, checks, status, isQuickCheck = false }) {
                 </Table.Tbody>
               </Table>
             </>}
+            {hasPageIssues && (
+              <CopyPromptButton prompt={generatePageAnalysisPrompt(website.domain, pageAnalysisCheck.result.details)} />
+            )}
           </>}
         </Card.Section>
 
@@ -648,6 +702,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
               </Table.Tbody>
             </Table>
             <Text size="sm" c="dimmed" mt="xs">Restrict these paths to authenticated users or disable them entirely in production. In FastAPI, set <code>docs_url=None</code> and <code>redoc_url=None</code>.</Text>
+            <CopyPromptButton prompt={generateApiDocsPrompt(website.domain, apiDocsCheck.result.details.exposed)} />
           </>}
         </Card.Section>
 

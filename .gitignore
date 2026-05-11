@@ -8,4 +8,4 @@ redis.conf
 packages/tmp
 .claude
 writing-style-guide.md
-utils/
+tmp/

@@ -28,7 +28,7 @@ function normalizeUrl(value) {
   return value;
 }
 
-const PRODUCT_NAMES = ['Cursor site', 'Lovable app', 'Bolt app', 'v0 build'];
+const PRODUCT_NAMES = ['Website', 'Lovable app', 'Cursor site', 'Bolt app', 'v0 build'];
 
 export default function Hero() {
   const formRef = useRef(null);

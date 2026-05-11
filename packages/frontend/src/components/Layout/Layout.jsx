@@ -11,7 +11,7 @@ import InlineLink from '@/components/InlineLink/InlineLink.jsx';
 import { useLocation } from 'react-router-dom';
 // import { useCookieConsent } from "react-cookie-manager";
 
-const Layout = ({ children, title, isPublicRoute, redirectIfAuth }) => {
+const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) => {
   // const { detailedConsent } = useCookieConsent();
   const [opened, { toggle }] = useDisclosure();
   const [menuOpened, setMenuOpened] = useState(false);
@@ -160,7 +160,7 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth }) => {
             size="sm"
           />}
           <Flex justify="space-between" w="100%">
-            <Flex gap="xs" align="center" component={Link} to="/" c="inherit" td="none">
+            <Flex gap="xs" align="center" component={Link} to={logoLink || '/'} c="inherit" td="none">
               <IconHeartbeat size={26} stroke={0.8} />
               <Text size="xl" fw={200}>StatusScout</Text>
             </Flex>

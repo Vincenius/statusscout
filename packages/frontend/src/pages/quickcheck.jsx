@@ -94,7 +94,7 @@ function QuickCheck() {
   const { checks = [], quickcheckId } = result
 
   return (
-    <Layout title="Quick Check" isPublicRoute>
+    <Layout title="Quick Check" isPublicRoute logoLink="https://statusscout.dev/">
       <Container size="md" py="md" px={{ base: "0", md: "md" }}>
         <Box>
            <Title size="h1" ta="center" mb="sm">Your Security Scan Results</Title>

@@ -67,7 +67,7 @@ const locationBlocks = generateLocationBlocks(routes);
 
 let conf = fs.readFileSync(nginxConfPath, 'utf8');
 conf = conf.replace(
-  /(# routes:start\n)[\s\S]*?(  # routes:end)/,
+  /(# routes:start\n)[\s\S]*?(# routes:end)/,
   `$1${locationBlocks}\n  $2`
 );
 

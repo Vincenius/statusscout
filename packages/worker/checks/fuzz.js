@@ -10,17 +10,26 @@ function get404Probability(html) {
 
   let score = 0;
 
-  // 1. keyword signals
   const signals = ["404", "not found", "page not found", "error", "oops", "we can't find", "can't be found", "doesn't exist"];
   for (const s of signals) {
     if (text.includes(s)) score += 0.3;
   }
 
-  // 3. Title contains 404
   const title = text.match(/<title[^>]*>(.*?)<\/title>/);
   if (title && title[1].includes("404")) score += 0.5;
 
   return Math.min(1, score);
+}
+
+// Detects catch-all / SPA fallback: response is identical or nearly identical to the homepage
+function isFallbackPage(text, homepageText) {
+  if (!text || !homepageText) return false;
+  const t = text.trim();
+  const h = homepageText.trim();
+  if (t === h) return true;
+  // Within 2% length and first 500 chars identical → same template rendered
+  const ratio = t.length / h.length;
+  return ratio > 0.98 && ratio < 1.02 && t.slice(0, 500) === h.slice(0, 500);
 }
 
 export const runFuzzCheck = async ({ uri, id, db, websiteId, createdAt, type, quickcheckId }) => {
@@ -38,8 +47,14 @@ export const runFuzzCheck = async ({ uri, id, db, websiteId, createdAt, type, qu
   const fuzzFiles = fuzzFile.split('\n')
   const files = [...new Set([...fuzzFiles, ...prevFiles])]
 
-  // split into batches
-  const limit = pLimit(20); // max 10 concurrent requests
+  // Fetch homepage once to detect catch-all / SPA fallback behavior
+  let homepageText = null;
+  try {
+    const homepageRes = await fetch(uri);
+    homepageText = await homepageRes.text();
+  } catch (_) {}
+
+  const limit = pLimit(20);
   const promises = files.map(file =>
     limit(async () => {
       try {
@@ -48,12 +63,14 @@ export const runFuzzCheck = async ({ uri, id, db, websiteId, createdAt, type, qu
         if (res.status === 200) {
           const contentRes = await fetch(`${uri}/${filename}`);
           const text = await contentRes.text();
+          if (homepageText && isFallbackPage(text, homepageText)) {
+            return { status: 200, file, isFallback: true };
+          }
           return {
             status: 200,
             file,
             hasContent: text.trim().length > 0,
             probability404: get404Probability(text)
-            // todo compare with landing page to see if landing is rendered as fallback 
           };
         }
         return { status: res.status, file };
@@ -65,7 +82,7 @@ export const runFuzzCheck = async ({ uri, id, db, websiteId, createdAt, type, qu
 
   const results = await Promise.all(promises);
 
-  const filesWithContent = results.filter(sc => sc.status === 200 && sc.hasContent && sc.probability404 < 0.5);
+  const filesWithContent = results.filter(sc => sc.status === 200 && !sc.isFallback && sc.hasContent && sc.probability404 < 0.5);
   const result = {
     status: filesWithContent.length === 0 ? 'success' : 'fail',
     details: {

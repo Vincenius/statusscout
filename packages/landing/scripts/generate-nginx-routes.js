@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Get __dirname equivalent in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -19,45 +18,58 @@ function getRoutes(dir, base = '') {
     const fullPath = path.join(dir, e.name);
 
     if (e.isDirectory()) {
-      // build new base without leading slash, e.g. 'parent/child'
       const newBase = base ? `${base}/${e.name}` : e.name;
       routes = routes.concat(getRoutes(fullPath, newBase));
       continue;
     }
 
-    // file: remove extension
-    const name = e.name.replace(/\.[^/.]+$/, '');
+    if (!/\.(jsx|tsx)$/.test(e.name)) continue;
 
+    const name = e.name.replace(/\.[^/.]+$/, '');
     let route;
+
     if (name === 'index') {
       route = base ? `/${base}` : '/';
     } else {
       route = `/${base ? `${base}/` : ''}${name}`;
     }
 
-    // Normalize to posix-style slashes
     route = route.replace(/\\+/g, '/');
-
     routes.push(route);
   }
 
-  // dedupe while preserving order
   return [...new Set(routes)];
 }
 
 function generateLocationBlocks(routes) {
-  return routes
-    .filter(r => r !== '/404' && r !== '/') // skip 404 page and index
-    .map(route => `  location = ${route} {\n    try_files $uri $uri/ /index.html;\n  }`)
-    .join('\n');
+  const staticBlocks = routes
+    .filter(r => r !== '/404' && r !== '/' && !r.includes('['))
+    .map(route => `  location = ${route} {\n    try_files $uri $uri/ /index.html;\n  }`);
+
+  // Dynamic routes like /blog/[slug] → regex location for the parent directory
+  const dynamicDirs = [...new Set(
+    routes
+      .filter(r => r.includes('['))
+      .map(r => r.substring(0, r.lastIndexOf('/')))
+      .filter(Boolean)
+  )];
+
+  const dynamicBlocks = dynamicDirs.map(dir =>
+    `  location ~ ^${dir}/[^/]+$ {\n    try_files $uri $uri/ /index.html;\n  }`
+  );
+
+  return [...staticBlocks, ...dynamicBlocks].join('\n');
 }
 
 const routes = getRoutes(pagesDir);
-console.log('Generate routes:', routes)
+console.log('Generate routes:', routes);
 const locationBlocks = generateLocationBlocks(routes);
 
 let conf = fs.readFileSync(nginxConfPath, 'utf8');
-conf = conf.replace(/#\s*\{\{\s*frontend_routes\s*\}\}/, locationBlocks);
+conf = conf.replace(
+  /(# routes:start\n)[\s\S]*?(  # routes:end)/,
+  `$1${locationBlocks}\n  $2`
+);
 
 fs.writeFileSync(nginxConfPath, conf);
 console.log('nginx.conf updated with frontend routes.');

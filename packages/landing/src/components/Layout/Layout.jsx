@@ -159,6 +159,7 @@ const Layout = ({ children, title }) => {
 
         <Flex gap="lg" direction="column">
           <Flex gap="sm" justify={{ base: 'center', xs: 'flex-end' }} wrap="wrap">
+            <Text size="sm" c="inherit"><InlineLink to="/blog">Blog</InlineLink></Text>
             <Text size="sm" c="inherit"><InlineLink to="/imprint">Imprint</InlineLink></Text>
             <Text size="sm"><InlineLink to="/privacy">Privacy</InlineLink></Text>
           </Flex>

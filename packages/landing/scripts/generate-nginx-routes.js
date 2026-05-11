@@ -44,7 +44,7 @@ function getRoutes(dir, base = '') {
 function generateLocationBlocks(routes) {
   const staticBlocks = routes
     .filter(r => r !== '/404' && r !== '/' && !r.includes('['))
-    .map(route => `  location = ${route} {\n    try_files $uri $uri/ /index.html;\n  }`);
+    .map(route => `  location = ${route} {\n    try_files $uri /index.html;\n  }`);
 
   // Dynamic routes like /blog/[slug] → regex location for the parent directory
   const dynamicDirs = [...new Set(
@@ -55,7 +55,7 @@ function generateLocationBlocks(routes) {
   )];
 
   const dynamicBlocks = dynamicDirs.map(dir =>
-    `  location ~ ^${dir}/[^/]+$ {\n    try_files $uri $uri/ /index.html;\n  }`
+    `  location ~ ^${dir}/[^/]+$ {\n    try_files $uri /index.html;\n  }`
   );
 
   return [...staticBlocks, ...dynamicBlocks].join('\n');

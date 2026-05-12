@@ -64,7 +64,8 @@ export const getIssueHistory = (checks) => {
   const headerIssues = getIssues({ checks, type: 'headers', getCurrIssues: curr => (curr?.result?.details?.missingHeaders || []) })
   const cookieIssues = getIssues({ checks, type: 'cookies', getCurrIssues: curr => (curr?.result?.details?.issues || []).map(i => `${i.cookie}: missing ${i.missingFlags.join(', ')}`) })
   const fuzzIssues = getIssues({ checks, type: 'fuzz', getCurrIssues: curr => (curr?.result?.details?.files || []).map(i => i.file) })
-  const dnsIssues = getIssues({ checks, type: 'dns', getCurrIssues: curr => (Object.entries(curr?.result?.details || {}) || []).filter(([key, val]) => !val.success && key !== 'subdomains').map(([key]) => dnsChecksInfo[key].name) })
+  const DNS_LOW_TIER = new Set(['ds', 'dnskey', 'aaaa'])
+  const dnsIssues = getIssues({ checks, type: 'dns', getCurrIssues: curr => (Object.entries(curr?.result?.details || {}) || []).filter(([key, val]) => !val.success && key !== 'subdomains' && !DNS_LOW_TIER.has(key)).map(([key]) => dnsChecksInfo[key].name) })
   const subdomainIssues = getIssues({
     checks, type: 'dns',
     getCurrIssues: curr => ((Object.entries(curr?.result?.details || {}) || [])

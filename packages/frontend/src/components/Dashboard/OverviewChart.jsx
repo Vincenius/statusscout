@@ -14,14 +14,15 @@ const OverviewChart = ({ data = [], flows = [] }) => {
   const recentCustomChecks = data.filter(d => d.check === 'custom').sort(byDate)[0]
 
   const fuzzScore = calcScore(recentFuzz?.result?.details?.files?.length ?? 0, 20)
-  const headersScore = calcScore(recentHeaders?.result?.details?.missingHeaders?.length ?? 0, 10)
+  const headersScore = calcScore(recentHeaders?.result?.details?.missingHeaders?.length ?? 0, 5)
   const sslPenalty = recentSSL?.result?.status === 'success' ? 0 : 100
   const securityScore = Math.max(Math.round(fuzzScore * 0.8 + headersScore * 0.2) - (sslPenalty / 2), 0)
 
+  const DNS_LOW_TIER = new Set(['ds', 'dnskey', 'aaaa'])
   const failedDns = recentDns
-    ? Object.values(recentDns.result?.details || {}).filter(d => !d.success).length
+    ? Object.entries(recentDns.result?.details || {}).filter(([key, d]) => !d.success && !DNS_LOW_TIER.has(key)).length
     : 0
-  const dnsScore = calcScore(failedDns, 11)
+  const dnsScore = calcScore(failedDns, 8)
 
   const pad = recentPageAnalysis?.result?.details || {}
   const pageSecurityIssues =

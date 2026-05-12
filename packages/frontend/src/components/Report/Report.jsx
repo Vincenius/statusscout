@@ -143,6 +143,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
   const [showIgnored, setShowIgnored] = useState(false);
   const [expandHeaders, setExpandHeaders] = useState(false);
   const missingHeaders = headersCheck?.result?.details?.missingHeaders || [];
+  const missingOptionalHeaders = headersCheck?.result?.details?.missingOptionalHeaders || [];
   const displayedHeaders = expandHeaders ? missingHeaders : missingHeaders.slice(0, 3);
 
   // Exposed files table expand state
@@ -488,6 +489,27 @@ function Report({ website, checks, status, isQuickCheck = false }) {
             )}
             <CopyPromptButton prompt={generateHeadersPrompt(website.domain, missingHeaders)} />
           </>}
+          {missingOptionalHeaders.length > 0 && (
+            <>
+              <Text size="md" mb="sm" mt={hasMissingHeaders ? 'xl' : 0} fs="italic" c="dimmed">Optional headers not set (advanced isolation):</Text>
+              <Table striped withTableBorder>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Td>Header</Table.Td>
+                    <Table.Td>Explanation</Table.Td>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {missingOptionalHeaders.map((item, index) => (
+                    <Table.Tr key={`optional-header-${index}`}>
+                      <Table.Td><Text fw="bold" c="dimmed">{item}</Text></Table.Td>
+                      <Table.Td><Text c="dimmed">{recommendedHeaders[item]}</Text></Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </>
+          )}
         </Card.Section>
 
         <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={headerWarningsRef}>

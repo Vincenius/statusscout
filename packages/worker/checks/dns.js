@@ -135,7 +135,7 @@ export const runDnsCheck = async ({ uri, id, websiteId, createdAt, quickcheckId,
   };
 
   const result = {
-    status: Object.values(results).every(res => res.success) ? 'success' : 'fail',
+    status: (!results.wildcard.success || !results.subdomains.success) ? 'fail' : 'success',
     details: results,
   }
   await createCheckResult({ id, websiteId, createdAt, check: 'dns', result, quickcheckId, type })

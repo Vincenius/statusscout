@@ -3,7 +3,6 @@ const recommendedHeaders = {
   'strict-transport-security': 'Enforces secure (HTTPS) connections to the server to protect against protocol downgrade attacks and cookie hijacking.',
   'x-content-type-options': 'Prevents browsers from MIME-sniffing a response away from the declared content-type, reducing exposure to drive-by download attacks.',
   'x-frame-options': 'Protects against clickjacking by preventing your site from being embedded in an iframe from another origin.',
-  'x-xss-protection': 'Enables the browser’s built-in XSS filtering (though it is deprecated in modern browsers).',
   'referrer-policy': 'Controls how much referrer information is included with requests. Helps prevent leaking sensitive URLs.',
   'permissions-policy': 'Restricts the use of powerful browser features (like geolocation, camera, microphone) to improve privacy and security.',
   'cross-origin-resource-policy': 'Prevents other origins from loading your resources unless explicitly allowed, reducing the risk of data leaks.',

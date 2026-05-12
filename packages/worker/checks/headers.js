@@ -8,12 +8,14 @@ export const runHeaderCheck = async ({ uri, id, websiteId, createdAt, quickcheck
     'strict-transport-security',
     'x-content-type-options',
     'x-frame-options',
-    'x-xss-protection',
     'referrer-policy',
+  ];
+
+  const optionalHeaders = [
     'permissions-policy',
     'cross-origin-resource-policy',
     'cross-origin-opener-policy',
-    'cross-origin-embedder-policy'
+    'cross-origin-embedder-policy',
   ];
 
   try {
@@ -28,6 +30,13 @@ export const runHeaderCheck = async ({ uri, id, websiteId, createdAt, quickcheck
     recommendedHeaders.forEach(name => {
       if (!headers[name]) {
         missingHeaders.push(name)
+      }
+    });
+
+    const missingOptionalHeaders = []
+    optionalHeaders.forEach(name => {
+      if (!headers[name]) {
+        missingOptionalHeaders.push(name)
       }
     });
 
@@ -69,6 +78,7 @@ export const runHeaderCheck = async ({ uri, id, websiteId, createdAt, quickcheck
       status: missingHeaders.length === 0 && !corsWildcard && versionDisclosure.length === 0 ? 'success' : 'fail',
       details: {
         missingHeaders,
+        missingOptionalHeaders,
         corsWildcard,
         versionDisclosure,
         httpsRedirect,

@@ -1,0 +1,22 @@
+services:
+  statusscout-mongodb:
+    image: mongo:7
+    container_name: statusscout-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  statusscout-redis:
+    image: redis:7
+    container_name: statusscout-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongo_data:
+  redis_data:

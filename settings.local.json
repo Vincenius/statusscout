@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs cat -n)",
+      "Bash(xargs -I {} find {} -type d)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{redirect_url}\" http://statusscout.dev)",
+      "Bash(npx --yes acorn --ecma2020 --module src/components/Report/Report.jsx)",
+      "Bash(node_modules/.bin/vite build *)",
+      "WebFetch(domain:public.api.bsky.app)",
+      "WebFetch(domain:wweb.dev)",
+      "WebFetch(domain:dev.to)",
+      "Bash(npx --yes --no -- vite build --config packages/frontend/vite.config.js)",
+      "Bash(npx vite *)",
+      "Bash(node -e \"const sslChecker = require\\('/Users/vincentwill/Projekte/status-scout/node_modules/ssl-checker'\\); console.log\\(Object.keys\\(sslChecker\\)\\)\")",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

@@ -47,8 +47,23 @@ async function runSubzy(target) {
         ];
         if (skippedPatterns.some(p => upper.includes(p))) return;
 
+        // Services whose fingerprints are too generic to trust (match common error pages,
+        // empty strings, or HTTP status codes that appear on unrelated infrastructure).
+        // Source: /home/vincent/subzy/fingerprints.json
+        const highFpServices = [
+          'Cargo Collective', // fingerprint: "404 Not Found" — matches any error page body
+          'Smugsmug',         // fingerprint: "" — matches everything
+          'Helprace',         // fingerprint: HTTP 301 — any redirect
+          'LaunchRock',       // fingerprint: HTTP 500 — any server error
+          'Strikingly',       // fingerprint: "PAGE NOT FOUND." — too generic
+          'Uptimerobot',      // fingerprint: "page not found" — too generic
+          'Surge.sh',         // fingerprint: "project not found" — too generic
+          'SurveySparrow',    // fingerprint: "Account not found." — too generic
+        ];
+        const isHighFp = highFpServices.some(svc => cleanLine.includes(svc));
+
         // Accept only lines that indicate an actual vulnerability or takeover
-        if (/VULNERABLE\b/i.test(cleanLine) || /Takeover/i.test(cleanLine)) {
+        if (!isHighFp && (/VULNERABLE\b/i.test(cleanLine) || /Takeover/i.test(cleanLine))) {
           issues.push(cleanLine);
         }
       });

@@ -3,6 +3,11 @@ import getSubdomains from '../utils/runSubfinder.js';
 import { createCheckResult } from '../db.js';
 import dns from 'dns/promises';
 
+// systemd-resolved (127.0.0.53) returns SERVFAIL for DS and DNSKEY queries,
+// so DNSSEC checks need a reliable recursive resolver.
+const dnssecResolver = new dns.Resolver();
+dnssecResolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+
 const dkimSelectors = [
   // Generic / common
   "default", "selector",
@@ -56,6 +61,14 @@ async function checkRecord(type, name) {
   }
 }
 
+async function checkDnssecRecord(type, name) {
+  try {
+    return await dnssecResolver.resolve(name, type);
+  } catch {
+    return [];
+  }
+}
+
 async function checkTxtRecords(name) {
   try {
     const records = await dns.resolveTxt(name);
@@ -81,8 +94,8 @@ export const runDnsCheck = async ({ uri, id, websiteId, createdAt, quickcheckId,
     checkTxtRecords(domain),
     checkTxtRecords(`_dmarc.${domain}`),
     checkRecord("CAA", domain),
-    checkRecord("DS", domain),
-    checkRecord("DNSKEY", domain),
+    checkDnssecRecord("DS", domain),
+    checkDnssecRecord("DNSKEY", domain),
     checkRecord("A", `${rand}.${domain}`),
     getSubdomains(domain)
   ])
@@ -128,7 +141,11 @@ export const runDnsCheck = async ({ uri, id, websiteId, createdAt, quickcheckId,
   results.dnskey = { records: dnskey, success: dnskey.length > 0 };
   results.wildcard = { records: wildcard, success: wildcard.length === 0 };
 
-  const subdomainIssues = await checkSubdomains(subdomains);
+  // Skip well-known mail infrastructure subdomains — they return 403 by design
+  // and consistently trigger false positives in subzy (e.g. Cargo Collective fingerprint).
+  const mailInfraLabels = new Set(['autoconfig', 'autodiscover', 'mta-sts']);
+  const subdomainsToCheck = subdomains.filter(s => !mailInfraLabels.has(s.split('.')[0]));
+  const subdomainIssues = await checkSubdomains(subdomainsToCheck);
   results.subdomains = {
     issues: subdomainIssues,
     success: subdomainIssues.length === 0

@@ -1,4 +1,6 @@
 import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs';
 
 function runSubfinder(domain, options = {}) {
 	return new Promise((resolve, reject) => {
@@ -9,8 +11,14 @@ function runSubfinder(domain, options = {}) {
 		const args = ['-d', domain, '--silent'];
 		if (Array.isArray(options.args) && options.args.length) args.push(...options.args);
 
+		let subfinderPath = process.env.SUBFINDER || 'subfinder';
+		if (!fs.existsSync(subfinderPath)) {
+			const goBin = path.join(process.env.GOPATH || path.join(process.env.HOME || '', 'go'), 'bin', 'subfinder');
+			if (fs.existsSync(goBin)) subfinderPath = goBin;
+		}
+
 		let timedOut = false;
-		const proc = spawn('subfinder', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+		const proc = spawn(subfinderPath, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
 		const found = new Set();
 		let stderr = '';

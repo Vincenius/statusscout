@@ -62,7 +62,31 @@ assets/              # Static assets (logo, wordlists)
 
 ### Development
 
-Requires Node.js v20+ and local MongoDB + Redis instances.
+Requires Node.js v20+, local MongoDB + Redis instances, and the following tools for DNS and browser-based checks:
+
+If you don't have MongoDB and Redis running locally, you can use the provided dev compose file to spin them up:
+```sh
+docker compose -f docker-compose.dev.yml up -d
+```
+
+**[subfinder](https://github.com/projectdiscovery/subfinder)** — subdomain discovery (used by DNS checks):
+```sh
+go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+```
+
+**[subzy](https://github.com/LukaSikic/subzy)** — subdomain takeover detection (used by DNS checks):
+```sh
+go install github.com/PentestPad/subzy@latest
+```
+
+Make sure `$GOPATH/bin` (default: `~/go/bin`) is in your `$PATH`.
+
+**Playwright Chromium** — headless browser (used by Lighthouse and custom flow checks):
+```sh
+npx playwright install chromium   # run after yarn install
+```
+
+DNS and Lighthouse checks will fail gracefully without these tools — the worker catches errors and continues. They are only required when working on those specific check modules.
 
 ```sh
 yarn          # install all workspace dependencies

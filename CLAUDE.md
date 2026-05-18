@@ -2,6 +2,10 @@
 
 Website monitoring & security scanning platform. Self-hosted, Node.js monorepo.
 
+## Writing Style
+
+When writing any user-facing content (copy, emails, UI text, docs, marketing), follow the guide in [writing-style-guide.md](writing-style-guide.md).
+
 ## Architecture
 
 Yarn workspaces + Lerna. Five packages, each runs as its own Docker service:

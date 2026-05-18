@@ -8,7 +8,7 @@ export default function Pricing() {
     <Box mt="12em" mb="12em">
       <Title size="2em" order={2} ta="center" mt="sm" mb="1em">Pricing</Title>
       <Text c="dimmed" ta="center" fz="lg" mx="auto" maw="560px" mb="3em">
-        Built for indie developers and vibe coders. Start with a free scan, then set up continuous monitoring so you're never caught off guard again.
+        Start with a free scan. Then set up continuous monitoring so you're the first to know when something breaks.
       </Text>
 
       <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg" mx="auto" maw={{ base: 400, md: 'none' }}>
@@ -19,7 +19,7 @@ export default function Pricing() {
             <Text fz="2em" fw={700}>Free forever</Text>
             <Text c="dimmed" fz="sm" mb="md">You only pay for your own server.</Text>
 
-            <Text fz="sm">Deploy StatusScout to your own infrastructure. Full feature set, no restrictions, self-managed updates.</Text>
+            <Text fz="sm">Deploy StatusScout to your own server. All features included, no restrictions.</Text>
           </Card.Section>
 
           <Card.Section mb="md" p="md">
@@ -32,19 +32,18 @@ export default function Pricing() {
                 </ThemeIcon>
               }
             >
-              <List.Item>All core features</List.Item>
+              <List.Item>All features included</List.Item>
               <List.Item>Self-managed updates</List.Item>
-              <List.Item>Includes all upcoming features</List.Item>
+              <List.Item>Includes upcoming features</List.Item>
             </List>
           </Card.Section>
 
           <Button component="a" href="https://github.com/vincenius/statusscout" target="_blank" rel="noopener" fullWidth variant="outline">
-            Get Started with Self-hosting
+            Get started with self-hosting
           </Button>
         </Card>
 
         <Card shadow="sm" radius="md" p="lg" withBorder style={{ borderColor: 'var(--mantine-primary-color-6)' }}>
-          {/* Cloud (head -> switch between monthly and yearly billing) */}
           <Card.Section mb="md" p="md" withBorder>
             <Flex justify="space-between" align="center" mb="sm">
               <Title order={3} c="indigo">Cloud</Title>
@@ -57,7 +56,7 @@ export default function Pricing() {
 
             <Text fz="2em" fw={700}>${isYearly ? 12 : 15}/month</Text>
             <Text c="dimmed" fz="sm" mb="md">Billed {isYearly ? "annually" : "monthly"}.</Text>
-            <Text fz="sm">Fully managed service with all features and automatic updates.</Text>
+            <Text fz="sm">We host and run it for you. All features included, updates automatic.</Text>
           </Card.Section>
 
           <Card.Section mb="md" p="md">
@@ -70,17 +69,17 @@ export default function Pricing() {
                 </ThemeIcon>
               }
             >
-              <List.Item>All core features</List.Item>
-              <List.Item>Up to 5 Websites</List.Item>
+              <List.Item>All features included</List.Item>
+              <List.Item>Up to 5 websites</List.Item>
               <List.Item>Up to 10 custom test flows per domain</List.Item>
             </List>
           </Card.Section>
 
           <Button component="a" href={`${import.meta.env.VITE_APP_URL}/register`} target="_blank" rel="noopener" fullWidth>
-            Start Free 7-Day Trial
+            Start free 7-day trial
           </Button>
           <Text c="dimmed" fz="sm" mt="xs">
-            * No credit card required. Cancel anytime.
+            No credit card required. Cancel anytime.
           </Text>
         </Card>
 
@@ -89,9 +88,9 @@ export default function Pricing() {
             <Title order={3} mb="sm" c="indigo">Enterprise</Title>
 
             <Text fz="2em" fw={700}>Contact us</Text>
-            <Text c="dimmed" fz="sm" mb="md">Contact us for details.</Text>
+            <Text c="dimmed" fz="sm" mb="md">Custom pricing.</Text>
 
-            <Text fz="sm">Need a bigger package? We offer custom solutions to fit your needs.</Text>
+            <Text fz="sm">Running more than 5 sites, or need a custom setup? Get in touch.</Text>
           </Card.Section>
 
           <Card.Section mb="md" p="md">
@@ -104,14 +103,14 @@ export default function Pricing() {
                 </ThemeIcon>
               }
             >
-              <List.Item>All core features</List.Item>
-              <List.Item>Custom amount of Websites</List.Item>
-              <List.Item>Custom amount of test flows</List.Item>
+              <List.Item>All features included</List.Item>
+              <List.Item>Custom number of websites</List.Item>
+              <List.Item>Custom number of test flows</List.Item>
             </List>
           </Card.Section>
 
           <Button component="a" href="mailto:hello@statusscout.dev" variant="outline" fullWidth>
-            Contact Us
+            Get in touch
           </Button>
         </Card>
       </SimpleGrid>

@@ -13,7 +13,6 @@ function isValidUrl(value) {
     const hasValidHostname =
       /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(url.hostname) ||
       /^[\d.]+$/.test(url.hostname);
-
     return isHttp && hasValidHostname;
   } catch (_) {
     return false;
@@ -21,43 +20,37 @@ function isValidUrl(value) {
 }
 
 function normalizeUrl(value) {
-  // If user entered without scheme, default to https
   if (!/^https?:\/\//i.test(value)) {
     return `https://${value}`;
   }
   return value;
 }
 
-const PRODUCT_NAMES = ['Lovable app', 'Cursor site', 'Bolt app', 'v0 build'];
-
-export default function Hero() {
+export default function Hero({ rotatingWords, renderTitle, description }) {
   const formRef = useRef(null);
   const [loading, setLoading] = useState(false);
-  const [productIndex, setProductIndex] = useState(0);
+  const [wordIndex, setWordIndex] = useState(0);
+  const { colorScheme } = useMantineColorScheme();
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setProductIndex(i => (i + 1) % PRODUCT_NAMES.length);
+      setWordIndex(i => (i + 1) % rotatingWords.length);
     }, 2800);
     return () => clearInterval(interval);
-  }, []);
-  const { colorScheme } = useMantineColorScheme();
-  const heroImage = colorScheme === 'dark'
-    ? '/screenshot-dark.png'
-    : '/screenshot-light.png';
+  }, [rotatingWords.length]);
+
+  const heroImage = colorScheme === 'dark' ? '/screenshot-dark.png' : '/screenshot-light.png';
 
   const form = useForm({
-    initialValues: {
-      url: '',
-    },
+    initialValues: { url: '' },
     validate: {
       url: (value) => isValidUrl(value) ? null : 'Please enter a valid URL',
     },
   });
 
   const handleSubmit = ({ url }) => {
-    const formData = new FormData(formRef.current)
-    const token = formData.get('cf-turnstile-response')
+    const formData = new FormData(formRef.current);
+    const token = formData.get('cf-turnstile-response');
     const normalizedUrl = normalizeUrl(url.trim());
 
     if (!isValidUrl(normalizedUrl)) {
@@ -65,37 +58,49 @@ export default function Hero() {
       return;
     }
 
-    const parsed = new URL(normalizedUrl);
-    const finalUrl = parsed.origin;
+    const finalUrl = new URL(normalizedUrl).origin;
+    setLoading(true);
+    trackEvent('quickcheck', { url: finalUrl });
 
-    setLoading(true)
-    trackEvent('quickcheck', { url: finalUrl })
     fetch(`${import.meta.env.VITE_API_URL}/v1/quickcheck`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({
-        url: finalUrl,
-        turnstileToken: token,
-      }),
-    }).then(res => res.json())
+      body: JSON.stringify({ url: finalUrl, turnstileToken: token }),
+    })
+      .then(res => res.json())
       .then(res => {
         if (res.error) {
           form.setFieldError('url', res.error);
-          return;
+        } else if (res.statusCode === 200 && res.quickcheckId) {
+          window.location.href = `${import.meta.env.VITE_APP_URL}/quickcheck?id=${res.quickcheckId}`;
         } else {
-          if (res.statusCode === 200 && res.quickcheckId) {
-            window.location.href = `${import.meta.env.VITE_APP_URL}/quickcheck?id=${res.quickcheckId}`
-          } else {
-            form.setFieldError('url', `Could not reach ${url} [Status: ${res.statusCode}]`);
-          }
+          form.setFieldError('url', `Could not reach ${url} [Status: ${res.statusCode}]`);
         }
-      }).finally(() => {
-        setLoading(false)
       })
+      .finally(() => setLoading(false));
   };
+
+  const rotatingSpan = (
+    <span style={{ display: 'inline-grid', verticalAlign: 'bottom' }}>
+      {rotatingWords.map((word, i) => (
+        <span
+          key={word}
+          className={classes.highlight}
+          style={{
+            gridColumn: 1,
+            gridRow: 1,
+            whiteSpace: 'nowrap',
+            opacity: i === wordIndex ? 1 : 0,
+            transform: i === wordIndex ? 'translateY(0)' : 'translateY(0.35em)',
+            transition: 'opacity 0.5s ease, transform 0.5s ease',
+          }}
+        >
+          {word}
+        </span>
+      ))}
+    </span>
+  );
 
   return (
     <Flex w="100%" mx="auto" my="4em" gap="xl" justify="space-between" direction={{ base: 'column', md: 'row' }} align={{ base: 'center', md: 'initial' }}>
@@ -103,32 +108,11 @@ export default function Hero() {
 
       <Flex w="100%" maw={700} direction="column" justify="space-around" gap={{ base: 'xl', md: '0' }}>
         <Title order={1} fw="100" className={classes.title}>
-          Your{' '}
-          <span style={{ display: 'inline-grid', verticalAlign: 'bottom' }}>
-            {PRODUCT_NAMES.map((name, i) => (
-              <span
-                key={name}
-                className={classes.highlight}
-                style={{
-                  gridColumn: 1,
-                  gridRow: 1,
-                  whiteSpace: 'nowrap',
-                  opacity: i === productIndex ? 1 : 0,
-                  transform: i === productIndex ? 'translateY(0)' : 'translateY(0.35em)',
-                  transition: 'opacity 0.5s ease, transform 0.5s ease',
-                  textAlign: 'center',
-                }}
-              >
-                {name}
-              </span>
-            ))}
-          </span>
-          {' '}is live.<br />
-          But is it safe?
+          {renderTitle(rotatingSpan)}
         </Title>
 
         <Text size="xl" maw={600}>
-          AI-built apps ship with 2.74× more vulnerabilities. StatusScout finds the security holes AIs leave behind and gives you ready-to-paste prompts to fix each one.
+          {description}
         </Text>
 
         <form onSubmit={form.onSubmit(handleSubmit)} ref={formRef}>
@@ -166,16 +150,20 @@ export default function Hero() {
             <ThemeIcon variant="light" size="md">
               <IconSearch style={{ width: '70%', height: '70%' }} />
             </ThemeIcon>
-            <Text size="lg">Scan your site in seconds — no account needed</Text>
+            <Text size="lg">Free scan, no account needed</Text>
           </Flex>
 
-          {import.meta.env.VITE_TURNSTILE_SITE_KEY && <Box mb="lg">
-            <Turnstile siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-              options={{
-                theme: colorScheme === 'dark' ? 'dark' : 'light',
-                appearance: 'interaction-only',
-              }} />
-          </Box>}
+          {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+            <Box mb="lg">
+              <Turnstile
+                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                options={{
+                  theme: colorScheme === 'dark' ? 'dark' : 'light',
+                  appearance: 'interaction-only',
+                }}
+              />
+            </Box>
+          )}
         </form>
 
         <Anchor
@@ -188,7 +176,7 @@ export default function Hero() {
         >
           <Flex gap="xs" align="center">
             <IconBrandGithub size={16} />
-            View on GitHub — free & open source
+            Open source on GitHub. Free forever.
           </Flex>
         </Anchor>
       </Flex>

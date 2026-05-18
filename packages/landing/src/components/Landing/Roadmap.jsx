@@ -98,7 +98,7 @@ const defaultItems = [
   },
   {
     title: "Dependency Vulnerability Scanning",
-    description: "Detect outdated or vulnerable packages in your app before they become a problem.",
+    description: "Find packages with known CVEs in your app's dependencies.",
     icon: <IconShieldLock size={18} color="orange" />,
     completed: false,
   },

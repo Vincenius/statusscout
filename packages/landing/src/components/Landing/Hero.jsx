@@ -33,6 +33,7 @@ export default function Hero({ rotatingWords, renderTitle, description }) {
   const { colorScheme } = useMantineColorScheme();
 
   useEffect(() => {
+    if (rotatingWords.length <= 1) return;
     const interval = setInterval(() => {
       setWordIndex(i => (i + 1) % rotatingWords.length);
     }, 2800);
@@ -81,26 +82,28 @@ export default function Hero({ rotatingWords, renderTitle, description }) {
       .finally(() => setLoading(false));
   };
 
-  const rotatingSpan = (
-    <span style={{ display: 'inline-grid', verticalAlign: 'bottom' }}>
-      {rotatingWords.map((word, i) => (
-        <span
-          key={word}
-          className={classes.highlight}
-          style={{
-            gridColumn: 1,
-            gridRow: 1,
-            whiteSpace: 'nowrap',
-            opacity: i === wordIndex ? 1 : 0,
-            transform: i === wordIndex ? 'translateY(0)' : 'translateY(0.35em)',
-            transition: 'opacity 0.5s ease, transform 0.5s ease',
-          }}
-        >
-          {word}
-        </span>
-      ))}
-    </span>
-  );
+  const rotatingSpan = rotatingWords.length <= 1
+    ? <span className={classes.highlight}>{rotatingWords[0]}</span>
+    : (
+      <span style={{ display: 'inline-grid', verticalAlign: 'bottom' }}>
+        {rotatingWords.map((word, i) => (
+          <span
+            key={word}
+            className={classes.highlight}
+            style={{
+              gridColumn: 1,
+              gridRow: 1,
+              whiteSpace: 'nowrap',
+              opacity: i === wordIndex ? 1 : 0,
+              transform: i === wordIndex ? 'translateY(0)' : 'translateY(0.35em)',
+              transition: 'opacity 0.5s ease, transform 0.5s ease',
+            }}
+          >
+            {word}
+          </span>
+        ))}
+      </span>
+    );
 
   return (
     <Flex w="100%" mx="auto" my="4em" gap="xl" justify="space-between" direction={{ base: 'column', md: 'row' }} align={{ base: 'center', md: 'initial' }}>

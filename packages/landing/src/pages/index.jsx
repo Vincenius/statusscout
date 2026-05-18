@@ -14,7 +14,7 @@ import {
   IconNetwork,
 } from '@tabler/icons-react';
 
-const ROTATING_WORDS = ['secure?', 'available?', 'healthy?', 'fast?'];
+const ROTATING_WORDS = ['secure?'];
 
 const FEATURES = [
   {

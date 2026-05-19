@@ -12,7 +12,7 @@ export default function BlogIndex() {
   }, []);
 
   return (
-    <Layout title="Blog" description="Thoughts on website monitoring, security, and building StatusScout.">
+    <Layout title="Blog" description="Thoughts on website monitoring, web security, and building StatusScout in public.">
       <Box py="xl">
         <Title order={1} mb="xs">Blog</Title>
         <Text c="dimmed" mb="xl">Thoughts on website monitoring, security, and building in public.</Text>

@@ -65,7 +65,7 @@ const SOCIAL_BULLETS = [
 
 function VibecodeLanding() {
   return (
-    <Layout title="Finds the security holes AIs leave behind">
+    <Layout title="Finds the security holes AIs leave behind" description="AI-built apps ship with more vulnerabilities than hand-written ones. StatusScout finds exposed secrets, missing security headers, and open API docs, then generates a fix prompt for each issue." ogImage="/og-ai.png">
       <Flex mx="auto" mih="80vh" align="center">
         <Hero
           rotatingWords={ROTATING_WORDS}

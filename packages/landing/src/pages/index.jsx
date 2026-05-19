@@ -64,7 +64,7 @@ const SOCIAL_BULLETS = [
 
 function Landing() {
   return (
-    <Layout title="Security and uptime monitoring for developers">
+    <Layout title="Security and uptime monitoring for developers" description="StatusScout monitors uptime, SSL certificates, security headers, DNS records, and exposed files. Get alerted the moment something goes wrong. Self-hosted, open source.">
       <Flex mx="auto" mih="80vh" align="center">
         <Hero
           rotatingWords={ROTATING_WORDS}

@@ -2,7 +2,7 @@ import Layout from '@/components/Layout/Layout';
 import { Box, Title } from '@mantine/core';
 
 const Privacy = () => {
-  return <Layout title="Privacy Policy" description="The Privacy Policy of StatusScout">
+  return <Layout title="Privacy Policy" description="How StatusScout collects, uses, and protects your data. Self-hosted by default, so your monitoring data stays on your server.">
     <Box maw={800} mx="auto" px="md" py="xl">
       <Title order={1} mb="xl">Privacy Policy</Title>
       <Title order={2} my="md">TLDR</Title>

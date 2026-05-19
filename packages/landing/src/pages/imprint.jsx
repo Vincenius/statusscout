@@ -3,7 +3,7 @@ import { Box, Title } from '@mantine/core';
 
 const Imprint = () => {
   return (
-    <Layout title="Imprint" description="The Imprint of StatusScout">
+    <Layout title="Imprint" description="Legal information and contact details for StatusScout.">
       <Box maw={800} mx="auto" px="md" py="xl">
         <Title order={1} mb="xl">Imprint</Title>
 

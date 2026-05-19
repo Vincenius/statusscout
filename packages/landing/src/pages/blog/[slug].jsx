@@ -46,7 +46,7 @@ export default function BlogPost() {
     : null;
 
   return (
-    <Layout title={post.title} description={post.description}>
+    <Layout title={post.title} description={post.description} ogImage={post.ogImage || post.image}>
       <Box maw={720} mx="auto" py="xl">
         <Anchor component={Link} to="/blog" size="sm" mb="xl" display="block">
           ← Back to blog

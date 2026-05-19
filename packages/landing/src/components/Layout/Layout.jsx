@@ -8,7 +8,7 @@ import InlineLink from '@/components/InlineLink/InlineLink.jsx';
 import { useLocation } from 'react-router-dom';
 // import { useCookieConsent } from "react-cookie-manager";
 
-const Layout = ({ children, title }) => {
+const Layout = ({ children, title, description, ogImage }) => {
   // const { detailedConsent } = useCookieConsent();
   const isAnalyticsEnabled = import.meta.env.VITE_ENABLE_ANALYTICS === 'true' || import.meta.env.VITE_ENABLE_ANALYTICS === true;
   const [opened, setOpened] = useState(false);
@@ -94,6 +94,12 @@ const Layout = ({ children, title }) => {
   return <>
     <Helmet>
       <title>{`${title} | StatusScout`}</title>
+      {description && <meta name="description" content={description} />}
+      <meta property="og:title" content={`${title} | StatusScout`} />
+      {description && <meta property="og:description" content={description} />}
+      <meta property="og:image" content={ogImage || `${import.meta.env.VITE_LANDING_URL || ''}/og.png`} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:image" content={ogImage || `${import.meta.env.VITE_LANDING_URL || ''}/og.png`} />
       {isAnalyticsEnabled && (<script defer src="https://analytics.vincentwill.com/script.js" data-website-id="a807669d-6eda-4c1c-9b36-2247d2caf318"></script>)}
     </Helmet>
 

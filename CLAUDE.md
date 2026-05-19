@@ -46,7 +46,7 @@ MongoDB (`status-check` database) + Redis (BullMQ queue named `checks`).
 |------|------|------|
 | `quick` | Every 5 min | headers + ssl |
 | `extended` | Every 6 hrs | + fuzz + dns + custom flows |
-| `full` | Daily at 04:00 | + lighthouse + performance + broken links |
+| `full` | Daily at 04:00 | + broken links |
 | `free` | On-demand (public) | Same as full but uses smaller fuzz list |
 
 ## API Routes (all prefixed `/v1`)
@@ -96,12 +96,16 @@ MongoDB (`status-check` database) + Redis (BullMQ queue named `checks`).
 |------|-----------|-------------|
 | `uptime.js` | `uptime` | HTTP GET, status code + response time. Always runs first; if fails, retries once after 5s. Other checks skipped if uptime fails. |
 | `ssl.js` | `ssl` | Certificate validity via ssl-checker |
-| `headers.js` | `headers` | 10 security headers (CSP, HSTS, X-Content-Type-Options, etc.) |
+| `headers.js` | `headers` | Security headers (CSP, HSTS, X-Content-Type-Options, etc.) + header warnings (version disclosure, HTTP→HTTPS redirect, CORS wildcard) |
 | `fuzz.js` | `fuzz` | Probes hidden paths from fuzz list; 404 probability scoring |
 | `dns.js` | `dns` | NS, MX, AAAA, SPF, DMARC, DKIM, CAA, DS, DNSKEY, wildcard, subdomain takeover via subfinder+subzy |
-| `lighthouse.js` | `seo` / `a11y` | Lighthouse audits (pass = score > 90) |
-| `performance.js` | `performance` | Google PageSpeed Core Web Vitals |
+| `cookies.js` | `cookies` | Checks cookies for missing security flags (HttpOnly, Secure, SameSite) |
+| `mixedcontent.js` | `mixedcontent` | Detects HTTP resources loaded on HTTPS pages |
+| `pageanalysis.js` | `pageanalysis` | Checks page HTML for verbose error pages, missing SRI on CDN resources, POST forms without CSRF tokens, directory listings |
+| `apidocs.js` | `apidocs` | Detects publicly accessible API documentation (Swagger, OpenAPI, GraphQL) |
 | `links.js` | `links` | Crawl & detect broken links |
+| `lighthouse.js` | `seo` / `a11y` | ~~Lighthouse audits~~ — file exists but no longer used |
+| `performance.js` | `performance` | ~~Google PageSpeed Core Web Vitals~~ — file exists but no longer used |
 | `custom.js` | `custom` | User-defined Playwright DSL flows |
 
 ## Notification System

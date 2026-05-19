@@ -8,6 +8,10 @@ import InlineLink from '@/components/InlineLink/InlineLink.jsx';
 import { useLocation } from 'react-router-dom';
 // import { useCookieConsent } from "react-cookie-manager";
 
+const NAV_LINKS = [
+  { label: 'Blog', to: '/blog' },
+];
+
 const Layout = ({ children, title, description, ogImage }) => {
   // const { detailedConsent } = useCookieConsent();
   const isAnalyticsEnabled = import.meta.env.VITE_ENABLE_ANALYTICS === 'true' || import.meta.env.VITE_ENABLE_ANALYTICS === true;
@@ -104,13 +108,38 @@ const Layout = ({ children, title, description, ogImage }) => {
     </Helmet>
 
     <Flex align="center" justify="space-between" h="100%" gap="lg" maw={1200} mx="auto" py="xs" px="xl">
-      <Flex gap="xs" align="center" component={Link} to="/" c="inherit" td="none">
-        <IconHeartbeat size={26} stroke={0.8} />
-        <Text size="xl" fw={200}>StatusScout</Text>
+      <Flex gap="4em">
+        <Flex gap="xs" align="center" component={Link} to="/" c="inherit" td="none">
+          <IconHeartbeat size={26} stroke={0.8} />
+          <Text size="xl" fw={200}>StatusScout</Text>
+        </Flex>
+        {/* later add nav here */}
+        {/* <Flex gap="md" align="center" display={{ base: 'none', xs: 'flex' }}>
+          {NAV_LINKS.map(link => {
+            const isActive = location.pathname.startsWith(link.to);
+            return (
+              <Text
+                key={link.to}
+                component={Link}
+                to={link.to}
+                size="md"
+                fw={isActive ? 500 : 400}
+                // c={isActive ? 'primary' : 'dimmed'}
+                td="none"
+                style={{
+                  transition: 'color 0.15s, border-color 0.15s',
+                }}
+              >
+                {link.label}
+              </Text>
+            );
+          })}
+        </Flex> */}
       </Flex>
 
+
       <Flex gap="md" align="center">
-        <Flex gap="md" display={{ base: 'none', xs: 'flex' }}>
+        <Flex gap="md" align="center" display={{ base: 'none', xs: 'flex' }}>
           <Button size="xs" component="a" href={`${import.meta.env.VITE_APP_URL}/login`} variant="outline">
             Login
           </Button>
@@ -127,6 +156,18 @@ const Layout = ({ children, title, description, ogImage }) => {
           </Menu.Target>
 
           <Menu.Dropdown>
+            {NAV_LINKS.map(link => (
+              <Menu.Item
+                key={link.to}
+                component={Link}
+                to={link.to}
+                fw={location.pathname.startsWith(link.to) ? 600 : 400}
+                c={location.pathname.startsWith(link.to) ? 'primary' : 'inherit'}
+              >
+                {link.label}
+              </Menu.Item>
+            ))}
+            <Menu.Divider />
             <Menu.Item>
               <Button size="xs" component="a" href={`${import.meta.env.VITE_APP_URL}/login`} variant="outline" fullWidth>
                 Login
@@ -151,46 +192,56 @@ const Layout = ({ children, title, description, ogImage }) => {
     <Divider mb="1em" />
 
     <footer>
-      <Flex py="xs" px="xl" w="100%" maw={1200} mx="auto" justify="space-between" direction={{ base: 'column', xs: 'row' }} gap={{ base: 'xl', xs: 'md' }}>
-        <Flex gap="md" direction="column" align={{ base: 'center', xs: 'flex-start' }}>
+      <Flex py="xl" px="xl" w="100%" maw={1200} mx="auto" justify="space-between" direction={{ base: 'column', sm: 'row' }} gap={{ base: 'xl', sm: 'md' }} align={{ base: 'center', sm: 'flex-start' }}>
+        <Flex gap="md" direction="column" align={{ base: 'center', sm: 'flex-start' }} maw={200}>
           <Flex gap="xs" align="center" component={Link} to="/" c="inherit" td="none">
             <IconHeartbeat size={20} stroke={0.8} />
             <Text size="md" fw={200}>StatusScout</Text>
           </Flex>
-          <Box>
+          <Box ta={{ base: 'center', sm: 'left' }}>
             <Text size="sm" c="dimmed">Made and hosted in the EU 🇪🇺</Text>
             <Text size="sm" c="dimmed">Runs on renewable energy 🍃</Text>
           </Box>
         </Flex>
 
-        <Flex gap="lg" direction="column">
-          <Flex gap="sm" justify={{ base: 'center', xs: 'flex-end' }} wrap="wrap">
-            <Text size="sm" c="inherit"><InlineLink to="/blog">Blog</InlineLink></Text>
-            <Text size="sm" c="inherit"><InlineLink to="/vibe-code">For AI Apps</InlineLink></Text>
-            <Text size="sm" c="inherit"><InlineLink to="/imprint">Imprint</InlineLink></Text>
+        <Flex gap={{ base: 'xl', sm: "5em"}} direction={{ base: 'column', sm: 'row' }} align={{ base: 'center', sm: 'flex-start' }}>
+          <Flex gap="xs" direction="column" align={{ base: 'center', sm: 'flex-start' }}>
+            <Text size="xs" fw={600} tt="uppercase" c="dimmed" mb={4}>Product</Text>
+            <Text size="sm"><InlineLink to="/blog">Blog</InlineLink></Text>
+            <Text size="sm"><InlineLink to="/vibe-code">For AI Apps</InlineLink></Text>
+          </Flex>
+
+          <Flex gap="xs" direction="column" align={{ base: 'center', sm: 'flex-start' }}>
+            <Text size="xs" fw={600} tt="uppercase" c="dimmed" mb={4}>Legal</Text>
+            <Text size="sm"><InlineLink to="/imprint">Imprint</InlineLink></Text>
             <Text size="sm"><InlineLink to="/privacy">Privacy</InlineLink></Text>
           </Flex>
-          <Flex gap="sm" justify={{ base: 'center', xs: 'flex-end' }}>
-            <a href="https://github.com/vincenius/statusscout" target="_blank" rel="noopener noreferrer">
-              <ThemeIcon variant="light" size="lg" aria-label="GitHub">
-                <IconBrandGithub size={20} />
-              </ThemeIcon>
-            </a>
-            <a href="https://bsky.app/profile/vincentwill.com" target="_blank" rel="noopener noreferrer">
-              <ThemeIcon variant="light" size="lg" aria-label="Bluesky">
-                <IconBrandBluesky size={20} />
-              </ThemeIcon>
-            </a>
-            <a href="https://ko-fi.com/wweb_dev" target="_blank" rel="noopener noreferrer">
-              <ThemeIcon variant="light" size="lg" aria-label="Bluesky">
-                <IconMug size={20} />
-              </ThemeIcon>
-            </a>
+
+          <Flex gap="xs" direction="column" align={{ base: 'center', sm: 'flex-start' }}>
+            <Text size="xs" fw={600} tt="uppercase" c="dimmed" mb={4}>Follow</Text>
+            <Flex gap="xs">
+              <a href="https://github.com/vincenius/statusscout" target="_blank" rel="noopener noreferrer">
+                <ThemeIcon variant="light" size="lg" aria-label="GitHub">
+                  <IconBrandGithub size={20} />
+                </ThemeIcon>
+              </a>
+              <a href="https://bsky.app/profile/vincentwill.com" target="_blank" rel="noopener noreferrer">
+                <ThemeIcon variant="light" size="lg" aria-label="Bluesky">
+                  <IconBrandBluesky size={20} />
+                </ThemeIcon>
+              </a>
+              <a href="https://ko-fi.com/wweb_dev" target="_blank" rel="noopener noreferrer">
+                <ThemeIcon variant="light" size="lg" aria-label="Ko-fi">
+                  <IconMug size={20} />
+                </ThemeIcon>
+              </a>
+            </Flex>
           </Flex>
         </Flex>
       </Flex>
 
-      <Text size="sm" align="center" my="lg">© {new Date().getFullYear()} StatusScout</Text>
+      <Divider />
+      <Text size="sm" ta="center" py="md" c="dimmed">© {new Date().getFullYear()} StatusScout</Text>
     </footer>
   </>
 }

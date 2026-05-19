@@ -1,15 +1,22 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import App from "./App.jsx";
-// import { CookieManager } from "react-cookie-manager";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+const rootElement = document.getElementById("root");
+const app = (
   <React.StrictMode>
-    {/* <CookieManager> */}
+    <HelmetProvider>
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    {/* </CookieManager> */}
+    </HelmetProvider>
   </React.StrictMode>
 );
+
+if (rootElement.innerHTML.trim()) {
+  hydrateRoot(rootElement, app);
+} else {
+  createRoot(rootElement).render(app);
+}

@@ -8,7 +8,6 @@ import { theme } from "./theme";
 import { useRoutes } from 'react-router-dom';
 import routes from '~react-pages';
 import { Suspense } from 'react';
-import { HelmetProvider } from 'react-helmet-async';
 
 function Redirect404() {
   useEffect(() => {
@@ -30,11 +29,11 @@ function AppRoutes() {
 }
 
 export default function App() {
-  return <HelmetProvider>
+  return (
     <MantineProvider theme={theme} defaultColorScheme="auto">
       <Suspense fallback={<Center h="100vh"><Loader /></Center>}>
         <AppRoutes />
       </Suspense>
     </MantineProvider>
-  </HelmetProvider>;
+  );
 }

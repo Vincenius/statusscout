@@ -1,23 +1,56 @@
 # StatusScout
 
-> **StatusScout** is your all-in-one website health and status monitoring tool. It lets you quickly check your site's uptime, performance, SEO, accessibility, security headers, SSL certificate, presence of sensitive files, broken links, and more — all from one interface.
+> **StatusScout** is a security and uptime monitoring platform for developers. It continuously monitors your site's uptime, SSL certificates, security headers, DNS records, exposed files, and more — and alerts you the moment something goes wrong. Self-hosted and open source.
 
-Things to remember when using StatusScout:
+## How It Works
 
-- It's open-source (see source and how it works on GitHub).
-- It combines Lighthouse-based checks (for SEO, performance, a11y) plus custom scans (security headers, broken links, sensitive files).
-- Plans for future enhancements include DNS checks, monitoring, and alerting capabilities.
-- The frontend is built with React + Vite + Mantine UI; the backend uses Node.js, MongoDB, and Redis for background job queuing.
-- When you enter a URL, various checks are triggered as background jobs; broken link checks are currently limited to the first 200 links.
+StatusScout runs scheduled checks on your websites at different intervals:
 
-## Docs & Source
+- **Every 5 minutes**: Uptime + SSL
+- **Every 6 hours**: + Security headers + sensitive file probing + DNS
+- **Daily at 04:00**: + Broken link crawl
+- **On-demand**: Full scan triggered manually from the dashboard
 
-- [GitHub repository (code + architecture & roadmap)](https://github.com/Vincenius/statusscout): See the implementation details and future plans.
+When a check detects a new issue, you receive an alert via your configured notification channel. A daily digest summarises all open issues from the last 24 hours.
 
-## Features
+## Checks
 
-- **SEO**, **Accessibility**, **Performance** checks via Lighthouse tooling.
-- **Security headers**, **SSL certificate** validation.
-- Detection of **sensitive files** on the site.
-- **Broken link** detection (limited to 200 links as of now).
-- Future roadmap includes **DNS checks**, **custom test flows**, and **monitoring/alerting** features.
+| Check | What it covers |
+|-------|---------------|
+| **Uptime** | HTTP status code and response time; retries once on failure |
+| **SSL** | Certificate validity and expiration |
+| **Security headers** | CSP, HSTS, X-Content-Type-Options, and more; flags version disclosure, HTTP→HTTPS redirect issues, and CORS wildcards |
+| **DNS** | NS, MX, AAAA, SPF, DMARC, DKIM, CAA, DS, DNSKEY records; wildcard detection; subdomain takeover via subfinder + subzy |
+| **Sensitive files** | Probes for accidentally exposed `.env` files, API keys, config files, and other sensitive paths |
+| **Cookies** | Flags cookies missing HttpOnly, Secure, or SameSite attributes |
+| **Mixed content** | Detects HTTP resources loaded on HTTPS pages |
+| **Page analysis** | Checks for verbose error pages, missing SRI on CDN resources, POST forms without CSRF tokens, directory listings |
+| **API docs exposure** | Detects publicly accessible Swagger, OpenAPI, and GraphQL endpoints |
+| **Broken links** | Crawls the site and reports dead links |
+| **Custom flows** | User-defined Playwright test flows (signup, checkout, etc.) — get alerted when they fail |
+
+## Alerts & Notifications
+
+- **Email** (AWS SES), **SMS** (Bird.com), **ntfy** (ntfy.sh)
+- Per-check priority: `critical` (instant alert on new failure), `daily` (included in digest), or `disabled`
+- Uptime and SSL default to critical; all other checks default to daily
+
+## Self-Hosting
+
+StatusScout is fully self-hostable. The stack is a Node.js monorepo (Yarn workspaces):
+
+- **api** — Fastify REST backend
+- **worker** — BullMQ job processor that runs all checks
+- **cron** — Scheduler that enqueues periodic check jobs
+- **frontend** — React + Vite dashboard
+- **shared** — Notification utilities and issue history logic
+
+Requires: MongoDB + Redis. No external services needed unless you want email or SMS alerts.
+
+## Key Facts
+
+- Open source — source code and architecture on [GitHub](https://github.com/Vincenius/statusscout)
+- Free public scan available without signup (uptime, SSL, headers, DNS, sensitive files, broken links)
+- Up to 5 monitored websites per account
+- `checks.createdAt` is stored as an ISO string, not a MongoDB Date
+- Lighthouse-based SEO/performance/a11y checks are **not** part of the current feature set

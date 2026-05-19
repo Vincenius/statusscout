@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "postbuild": "node scripts/generate-nginx-routes.js",
+    "build": "tsc && vite build && vite build --ssr src/entry-server.jsx --outDir dist-server",
+    "postbuild": "node scripts/prerender.js",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },

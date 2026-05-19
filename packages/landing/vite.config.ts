@@ -5,12 +5,15 @@ import path from 'path';
 import Pages from 'vite-plugin-pages'
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [
     react(),
     Pages({
-      dirs: 'src/pages', // default
-      extensions: ['jsx', 'tsx'], // include only these
+      dirs: 'src/pages',
+      extensions: ['jsx', 'tsx'],
+      // Sync mode is required for SSR renderToString — no React.lazy, all routes loaded eagerly.
+      // Fine for a small landing page with few routes.
+      importMode: 'sync',
     }),
     ViteImageOptimizer({}),
   ],
@@ -22,4 +25,6 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-});
+  // react-helmet-async v2 is CJS — bundle it into the SSR output to avoid Node.js named-export failure
+  ssr: isSsrBuild ? { noExternal: ['react-helmet-async'] } : {},
+}));

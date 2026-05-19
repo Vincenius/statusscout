@@ -42,11 +42,15 @@ function getRoutes(dir, base = '') {
 }
 
 function generateLocationBlocks(routes) {
+  // Static routes: serve the pre-rendered index.html for that route, fall back to root
   const staticBlocks = routes
     .filter(r => r !== '/404' && r !== '/' && !r.includes('['))
-    .map(route => `  location = ${route} {\n    try_files $uri /index.html;\n  }`);
+    .map(route => {
+      const file = `${route.slice(1)}/index.html`;
+      return `  location = ${route} {\n    try_files /${file} /index.html;\n  }`;
+    });
 
-  // Dynamic routes like /blog/[slug] → regex location for the parent directory
+  // Dynamic routes like /blog/[slug]: serve the pre-rendered slug file, fall back to root
   const dynamicDirs = [...new Set(
     routes
       .filter(r => r.includes('['))
@@ -55,7 +59,7 @@ function generateLocationBlocks(routes) {
   )];
 
   const dynamicBlocks = dynamicDirs.map(dir =>
-    `  location ~ ^${dir}/[^/]+$ {\n    try_files $uri /index.html;\n  }`
+    `  location ~ ^${dir}/([^/]+)$ {\n    try_files ${dir}/$1/index.html /index.html;\n  }`
   );
 
   return [...staticBlocks, ...dynamicBlocks].join('\n');
@@ -66,9 +70,11 @@ console.log('Generate routes:', routes);
 const locationBlocks = generateLocationBlocks(routes);
 
 let conf = fs.readFileSync(nginxConfPath, 'utf8');
+// Use function replacement to prevent $ in locationBlocks (e.g. $1) being
+// interpreted as a back-reference by String.replace().
 conf = conf.replace(
   /(# routes:start\n)[\s\S]*?(# routes:end)/,
-  `$1${locationBlocks}\n  $2`
+  (_, start, end) => `${start}${locationBlocks}\n  ${end}`
 );
 
 fs.writeFileSync(nginxConfPath, conf);

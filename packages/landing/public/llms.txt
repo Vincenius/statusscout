@@ -1,6 +1,6 @@
 # StatusScout
 
-> **StatusScout** is a security and uptime monitoring platform for developers. It continuously monitors your site's uptime, SSL certificates, security headers, DNS records, exposed files, and more — and alerts you the moment something goes wrong. Self-hosted and open source.
+> **StatusScout** is a security and uptime monitoring platform for developers. It continuously monitors your site's uptime, SSL certificates, security headers, DNS records, exposed files, and more. You get alerts you the moment something goes wrong. Self-hosted and open source.
 
 ## How It Works
 

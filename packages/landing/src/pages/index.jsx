@@ -64,12 +64,12 @@ const SOCIAL_BULLETS = [
 
 function Landing() {
   return (
-    <Layout title="Security and uptime monitoring for developers" description="StatusScout monitors uptime, SSL certificates, security headers, DNS records, and exposed files. Get alerted the moment something goes wrong. Self-hosted, open source.">
+    <Layout title="Security and uptime monitoring for developers" description="StatusScout monitors uptime, SSL certificates, security headers, DNS records, exposed files, and more. Get alerted the moment something goes wrong. Self-hosted, open source.">
       <Flex mx="auto" mih="80vh" align="center">
         <Hero
           rotatingWords={ROTATING_WORDS}
           renderTitle={(spinner) => <>Your app is live.<br />But is it {spinner}</>}
-          description="StatusScout monitors security headers, SSL certificates, DNS records, uptime, and exposed files. You get an alert the moment something goes wrong."
+          description="StatusScout monitors security headers, SSL certificates, DNS records, uptime, exposed files, and more. You get an alert the moment something goes wrong."
         />
       </Flex>
 

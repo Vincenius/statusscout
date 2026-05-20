@@ -140,7 +140,7 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
   return <>
     <Helmet>
       <title>{`${title} | StatusScout`}</title>
-      {isAnalyticsEnabled && (<script defer src="https://analytics.vincentwill.com/script.js" data-website-id="a807669d-6eda-4c1c-9b36-2247d2caf318"></script>)}
+      {isAnalyticsEnabled && (<script defer src="https://analytics.vincentwill.com/script.js" data-website-id="a807669d-6eda-4c1c-9b36-2247d2caf318" integrity="sha384-P1BInfZdoZSf0uwq2HjkM5eTgAyjX7ZFPgf5pFvS2Ms82o4zgeEPBReA95B8XxJN" crossOrigin="anonymous"></script>)}
     </Helmet>
     <AppShell
       header={{ height: 60 }}

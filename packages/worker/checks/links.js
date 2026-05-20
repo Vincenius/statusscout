@@ -18,7 +18,8 @@ export const runBrokenLinkCheck = async ({ uri, id, websiteId, createdAt, type, 
     timeout: 15000, // 15 seconds timeout
     linksToSkip: (url) => {
       const isFile = fileRegex.test(url); // skip files
-      const skip = skipList.some(skip => url.includes(skip));
+      const isBotProtection = /\/cdn-cgi\//i.test(url); // Cloudflare bot/email protection
+      const skip = skipList.some(skip => url.includes(skip)) || isBotProtection;
 
       if (!skip && !isFile) {
         crawlCount++;

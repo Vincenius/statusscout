@@ -3,10 +3,19 @@ import getSubdomains from '../utils/runSubfinder.js';
 import { createCheckResult } from '../db.js';
 import dns from 'dns/promises';
 
-// systemd-resolved (127.0.0.53) returns SERVFAIL for DS and DNSKEY queries,
-// so DNSSEC checks need a reliable recursive resolver.
-const dnssecResolver = new dns.Resolver();
-dnssecResolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+// Node.js dns module (c-ares) rejects DS and DNSKEY as invalid rrtypes,
+// so DNSSEC checks use DNS-over-HTTPS instead.
+async function checkDohRecord(type, name) {
+  try {
+    const url = `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=${encodeURIComponent(type)}`;
+    const res = await fetch(url, { headers: { Accept: 'application/dns-json' }, signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.Answer ?? [];
+  } catch {
+    return [];
+  }
+}
 
 const dkimSelectors = [
   // Generic / common
@@ -61,13 +70,6 @@ async function checkRecord(type, name) {
   }
 }
 
-async function checkDnssecRecord(type, name) {
-  try {
-    return await dnssecResolver.resolve(name, type);
-  } catch {
-    return [];
-  }
-}
 
 async function checkTxtRecords(name) {
   try {
@@ -94,8 +96,8 @@ export const runDnsCheck = async ({ uri, id, websiteId, createdAt, quickcheckId,
     checkTxtRecords(domain),
     checkTxtRecords(`_dmarc.${domain}`),
     checkRecord("CAA", domain),
-    checkDnssecRecord("DS", domain),
-    checkDnssecRecord("DNSKEY", domain),
+    checkDohRecord("DS", domain),
+    checkDohRecord("DNSKEY", domain),
     checkRecord("A", `${rand}.${domain}`),
     getSubdomains(domain)
   ])

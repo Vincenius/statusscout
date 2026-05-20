@@ -7,6 +7,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - statusscout-net
 
   statusscout-redis:
     image: redis:7
@@ -16,6 +18,8 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - statusscout-net
 
   statusscout-api:
     build:
@@ -25,6 +29,8 @@ services:
     restart: always
     ports:
       - "${API_PORT:-4000}:4000"
+    networks:
+      - statusscout-net
     environment:
       - FRONTEND_URL=${FRONTEND_URL:-}
       - API_URL=${API_URL}
@@ -57,6 +63,8 @@ services:
       dockerfile: packages/cron/Dockerfile
     container_name: statusscout-cron
     restart: always
+    networks:
+      - statusscout-net
     environment:
       - MONGODB_URI=${MONGODB_URI}
       - REDIS_HOST=${REDIS_HOST}
@@ -85,6 +93,8 @@ services:
     restart: always
     ports:
       - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - statusscout-net
 
   statusscout-worker:
     build:
@@ -94,9 +104,11 @@ services:
     restart: always
     stop_signal: SIGTERM
     stop_grace_period: 60s # give the container time to finish jobs
+    networks:
+      - statusscout-net
     environment:
       - MONGODB_URI=${MONGODB_URI}
-      - GOOGLE_PAGESPEED_API_KEY=${GOOGLE_PAGESPEED_API_KEY} 
+      - GOOGLE_PAGESPEED_API_KEY=${GOOGLE_PAGESPEED_API_KEY}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - CONCURRENT_RUNS=${CONCURRENT_RUNS}
@@ -110,3 +122,7 @@ services:
 volumes:
   mongo_data:
   redis_data:
+
+networks:
+  statusscout-net:
+    name: statusscout-net

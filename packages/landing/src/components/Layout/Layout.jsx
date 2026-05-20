@@ -25,6 +25,8 @@ const Layout = ({ children, title, description, ogImage }) => {
       script.src = 'https://analytics.vincentwill.com/script.js';
       script.defer = true;
       script.setAttribute('data-website-id', 'a807669d-6eda-4c1c-9b36-2247d2caf318');
+      script.setAttribute("crossOrigin", "anonymous");
+      script.setAttribute("integrity", "sha384-P1BInfZdoZSf0uwq2HjkM5eTgAyjX7ZFPgf5pFvS2Ms82o4zgeEPBReA95B8XxJN")
       document.head.appendChild(script);
     }
     if (document.title !== `${title} | StatusScout`) {
@@ -104,7 +106,7 @@ const Layout = ({ children, title, description, ogImage }) => {
       <meta property="og:image" content={ogImage || `${import.meta.env.VITE_LANDING_URL || ''}/og.png`} />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:image" content={ogImage || `${import.meta.env.VITE_LANDING_URL || ''}/og.png`} />
-      {isAnalyticsEnabled && (<script defer src="https://analytics.vincentwill.com/script.js" data-website-id="a807669d-6eda-4c1c-9b36-2247d2caf318"></script>)}
+      {isAnalyticsEnabled && (<script defer src="https://analytics.vincentwill.com/script.js" data-website-id="a807669d-6eda-4c1c-9b36-2247d2caf318" integrity="sha384-P1BInfZdoZSf0uwq2HjkM5eTgAyjX7ZFPgf5pFvS2Ms82o4zgeEPBReA95B8XxJN" crossOrigin="anonymous"></script>)}
     </Helmet>
 
     <Flex align="center" justify="space-between" h="100%" gap="lg" maw={1200} mx="auto" py="xs" px="xl">

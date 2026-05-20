@@ -13,16 +13,15 @@ Run a free scan (no signup): [statusscout.dev](https://statusscout.dev)
 
 ## What It Checks
 
-- **Uptime**
-- **SSL certificate**
-- **Security headers**
-- **Exposed files**
-- **DNS**
-- **Cookies**
-- **Mixed content**
-- **Page analysis**
-- **Broken links**
-- **Custom flows**
+- Security headers 
+- SSL/TLS certificate validity
+- Exposed sensitive files & hidden paths
+- DNS health
+- Cookie security
+- Mixed content
+- Page security
+- Exposed API docs
+- Broken links
 
 ## Project Structure
 

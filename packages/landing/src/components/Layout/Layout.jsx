@@ -210,7 +210,6 @@ const Layout = ({ children, title, description, ogImage }) => {
           <Flex gap="xs" direction="column" align={{ base: 'center', sm: 'flex-start' }}>
             <Text size="xs" fw={600} tt="uppercase" c="dimmed" mb={4}>Product</Text>
             <Text size="sm"><InlineLink to="/blog">Blog</InlineLink></Text>
-            <Text size="sm"><InlineLink to="/vibe-code">For AI Apps</InlineLink></Text>
           </Flex>
 
           <Flex gap="xs" direction="column" align={{ base: 'center', sm: 'flex-start' }}>

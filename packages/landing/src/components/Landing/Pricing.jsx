@@ -12,7 +12,7 @@ export default function Pricing() {
       </Text>
 
       <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg" mx="auto" maw={{ base: 400, md: 'none' }}>
-        <Card shadow="sm" radius="md" p="lg" withBorder>
+        <Card shadow="sm" radius="md" p="lg" withBorder style={{ display: 'flex', flexDirection: 'column' }}>
           <Card.Section mb="md" p="md" withBorder>
             <Title order={3} mb="sm" c="indigo">Self-hosted</Title>
 
@@ -22,19 +22,19 @@ export default function Pricing() {
             <Text fz="sm">Deploy StatusScout to your own server. All features included, no restrictions.</Text>
           </Card.Section>
 
-          <Card.Section mb="md" p="md">
+          <Card.Section mb="md" p="md" style={{ flexGrow: 1 }}>
             <List
               center
               spacing="xs"
               icon={
-                <ThemeIcon color="green" size={18} radius="sm">
+                <ThemeIcon color="gray" size={18} radius="sm">
                   <IconCheck size={16} />
                 </ThemeIcon>
               }
             >
-              <List.Item>All features included</List.Item>
               <List.Item>Self-managed updates</List.Item>
-              <List.Item>Includes upcoming features</List.Item>
+              <List.Item>You manage backups & infrastructure</List.Item>
+              <List.Item>Bring your own notification accounts</List.Item>
             </List>
           </Card.Section>
 
@@ -43,7 +43,7 @@ export default function Pricing() {
           </Button>
         </Card>
 
-        <Card shadow="sm" radius="md" p="lg" withBorder style={{ borderColor: 'var(--mantine-primary-color-6)' }}>
+        <Card shadow="sm" radius="md" p="lg" withBorder style={{ borderColor: 'var(--mantine-primary-color-6)', display: 'flex', flexDirection: 'column' }}>
           <Card.Section mb="md" p="md" withBorder>
             <Flex justify="space-between" align="center" mb="sm">
               <Title order={3} c="indigo">Cloud</Title>
@@ -59,7 +59,7 @@ export default function Pricing() {
             <Text fz="sm">We host and run it for you. All features included, updates automatic.</Text>
           </Card.Section>
 
-          <Card.Section mb="md" p="md">
+          <Card.Section mb="md" p="md" style={{ flexGrow: 1 }}>
             <List
               center
               spacing="xs"
@@ -69,21 +69,24 @@ export default function Pricing() {
                 </ThemeIcon>
               }
             >
-              <List.Item>All features included</List.Item>
+              <List.Item>Automatic updates</List.Item>
               <List.Item>Up to 5 websites</List.Item>
               <List.Item>Up to 10 custom test flows per domain</List.Item>
+              <List.Item>Notification channels included</List.Item>
             </List>
           </Card.Section>
 
-          <Button component="a" href={`${import.meta.env.VITE_APP_URL}/register`} target="_blank" rel="noopener" fullWidth>
-            Start free 14-day trial
-          </Button>
-          <Text c="dimmed" fz="sm" mt="xs">
-            No credit card required. Cancel anytime.
-          </Text>
+          <Box>
+            <Text c="dimmed" fz="sm" mb="xs" ta="center">
+              No credit card required. Cancel anytime.
+            </Text>
+            <Button component="a" href={`${import.meta.env.VITE_APP_URL}/register`} target="_blank" rel="noopener" fullWidth>
+              Start free 14-day trial
+            </Button>
+          </Box>
         </Card>
 
-        <Card shadow="sm" radius="md" p="lg" withBorder>
+        <Card shadow="sm" radius="md" p="lg" withBorder style={{ display: 'flex', flexDirection: 'column' }}>
           <Card.Section mb="md" p="md" withBorder>
             <Title order={3} mb="sm" c="indigo">Enterprise</Title>
 
@@ -93,7 +96,7 @@ export default function Pricing() {
             <Text fz="sm">Running more than 5 sites, or need a custom setup? Get in touch.</Text>
           </Card.Section>
 
-          <Card.Section mb="md" p="md">
+          <Card.Section mb="md" p="md" style={{ flexGrow: 1 }}>
             <List
               center
               spacing="xs"
@@ -103,7 +106,6 @@ export default function Pricing() {
                 </ThemeIcon>
               }
             >
-              <List.Item>All features included</List.Item>
               <List.Item>Custom number of websites</List.Item>
               <List.Item>Custom number of test flows</List.Item>
             </List>

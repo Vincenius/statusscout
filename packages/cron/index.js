@@ -22,7 +22,7 @@ async function tryRun(type) {
         { 'subscription.expiresAt': { $exists: false } },
         { 'subscription.expiresAt': null },
       ],
-      'subscription.plan': { $in: ['pro', 'trial'] }
+      'subscription.plan': { $in: ['pro', 'trial', 'agency'] }
     }).toArray();
 
     console.log('run', type, 'check for', users.length, 'users')
@@ -58,7 +58,7 @@ async function runNotifications() {
         { 'subscription.expiresAt': { $exists: false } },
         { 'subscription.expiresAt': null },
       ],
-      'subscription.plan': { $in: ['pro', 'trial'] }
+      'subscription.plan': { $in: ['pro', 'trial', 'agency'] }
     }).toArray();
 
     for (const user of users) {

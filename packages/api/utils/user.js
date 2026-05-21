@@ -7,12 +7,21 @@ export const mapUser = (user) => {
       : [],
     confirmed: user.confirmed,
     isProUser: isProUser(user),
+    websiteLimit: getWebsiteLimit(user),
   };
 };
 
 export const isProUser = (user) => {
-  return user.subscription && (user.subscription.plan === 'pro' || user.subscription.plan === 'trial')
+  return user.subscription && (user.subscription.plan === 'pro' || user.subscription.plan === 'trial' || user.subscription.plan === 'agency')
     && (!user.subscription.expiresAt || (new Date(user.subscription.expiresAt) > new Date()));
+}
+
+export const getWebsiteLimit = (user) => {
+  return user?.subscription?.plan === 'agency' ? 20 : 5;
+}
+
+export const getFlowLimit = (user) => {
+  return user?.subscription?.plan === 'agency' ? 20 : 10;
 }
 
 // middleware for protected routes

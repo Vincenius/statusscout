@@ -28,6 +28,7 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
   const expiresAt = new Date(user?.subscription?.expiresAt);
   const now = new Date();
   const hasStripe = Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+  const websiteLimit = user?.subscription?.plan === 'agency' ? 20 : 5;
   const registrationDisabled = import.meta.env.VITE_DISABLE_REGISTRATION === 'true' || import.meta.env.VITE_DISABLE_REGISTRATION === true
   const { data: regData } = registrationDisabled
     ? useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/user/registration`)
@@ -271,7 +272,7 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
             leftSection={<IconCirclePlus size={16} stroke={1.5} />}
             active={window.location.pathname === '/website/new'}
             component={Link}
-            disabled={(hasStripe && websites.length >= 5) || !user?.isProUser}
+            disabled={(hasStripe && websites.length >= websiteLimit) || !user?.isProUser}
             to="/website/new"
           />
         </AppShell.Section>

@@ -7,9 +7,17 @@ export default function Pricing() {
   return (
     <Box py="8em">
       <Title order={2} ta="center" tt="uppercase" fw={600} ls={2} mt="sm" mb="1em">Pricing</Title>
-      <Text c="dimmed" ta="center" fz="lg" mx="auto" maw="560px" mb="3em">
+      <Text c="dimmed" ta="center" fz="lg" mx="auto" maw="560px" mb="2em">
         Start with a free scan. Then set up continuous monitoring so you're the first to know when something breaks.
       </Text>
+
+      <Flex justify="center" mb="2.5em">
+        <Switch
+          checked={!isYearly}
+          onChange={(event) => setIsYearly(!event.currentTarget.checked)}
+          label="Monthly billing"
+        />
+      </Flex>
 
       <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg" mx="auto" maw={{ base: 400, md: 'none' }}>
         <Card shadow="sm" radius="md" p="lg" withBorder style={{ display: 'flex', flexDirection: 'column' }}>
@@ -45,16 +53,9 @@ export default function Pricing() {
 
         <Card shadow="sm" radius="md" p="lg" withBorder style={{ borderColor: 'var(--mantine-primary-color-6)', display: 'flex', flexDirection: 'column' }}>
           <Card.Section mb="md" p="md" withBorder>
-            <Flex justify="space-between" align="center" mb="sm">
-              <Title order={3} c="indigo">Cloud</Title>
-              <Switch
-                checked={!isYearly}
-                onChange={(event) => setIsYearly(!event.currentTarget.checked)}
-                label="Monthly billing"
-              />
-            </Flex>
+            <Title order={3} mb="sm" c="indigo">Base</Title>
 
-            <Text fz="2em" fw={700}>${isYearly ? 12 : 15}/month</Text>
+            <Text fz="2em" fw={700}>${isYearly ? 19 : 24}/month</Text>
             <Text c="dimmed" fz="sm" mb="md">Billed {isYearly ? "annually" : "monthly"}.</Text>
             <Text fz="sm">We host and run it for you. All features included, updates automatic.</Text>
           </Card.Section>
@@ -88,12 +89,11 @@ export default function Pricing() {
 
         <Card shadow="sm" radius="md" p="lg" withBorder style={{ display: 'flex', flexDirection: 'column' }}>
           <Card.Section mb="md" p="md" withBorder>
-            <Title order={3} mb="sm" c="indigo">Enterprise</Title>
+            <Title order={3} mb="sm" c="indigo">Agency</Title>
 
-            <Text fz="2em" fw={700}>Contact us</Text>
-            <Text c="dimmed" fz="sm" mb="md">Custom pricing.</Text>
-
-            <Text fz="sm">Running more than 5 sites, or need a custom setup? Get in touch.</Text>
+            <Text fz="2em" fw={700}>${isYearly ? 35 : 39}/month</Text>
+            <Text c="dimmed" fz="sm" mb="md">Billed {isYearly ? "annually" : "monthly"}.</Text>
+            <Text fz="sm">Built for agencies managing multiple client sites. All features included.</Text>
           </Card.Section>
 
           <Card.Section mb="md" p="md" style={{ flexGrow: 1 }}>
@@ -106,14 +106,21 @@ export default function Pricing() {
                 </ThemeIcon>
               }
             >
-              <List.Item>Custom number of websites</List.Item>
-              <List.Item>Custom number of test flows</List.Item>
+              <List.Item>Automatic updates</List.Item>
+              <List.Item>Up to 20 websites</List.Item>
+              <List.Item>Up to 20 custom test flows per domain</List.Item>
+              <List.Item>Notification channels included</List.Item>
             </List>
           </Card.Section>
 
-          <Button component="a" href="mailto:hello@statusscout.dev" variant="outline" fullWidth>
-            Get in touch
-          </Button>
+          <Box>
+            <Text c="dimmed" fz="sm" mb="xs" ta="center">
+              No credit card required. Cancel anytime.
+            </Text>
+            <Button component="a" href={`${import.meta.env.VITE_APP_URL}/register`} target="_blank" rel="noopener" fullWidth variant="outline">
+              Start free 14-day trial
+            </Button>
+          </Box>
         </Card>
       </SimpleGrid>
     </Box>

@@ -77,7 +77,7 @@ function VibecodeLanding() {
       <FeatureGrid features={FEATURES} />
 
       <SocialProof
-        title={<>We've run security scans on <b>10,000+</b> websites</>}
+        title={<>We've run security scans on <b>1,000+</b> websites</>}
         bullets={SOCIAL_BULLETS}
       />
 

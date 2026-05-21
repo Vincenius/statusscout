@@ -1,7 +1,7 @@
 import fastifyPassport from '@fastify/passport';
 import { ObjectId } from 'mongodb'
 import { connectDB } from '../db.js'
-import { hasActivePlan } from '../utils/user.js';
+import { hasActivePlan, getWebsiteLimit } from '../utils/user.js';
 
 export default async function userRoutes(fastify, opts) {
   fastify.post('/',
@@ -21,8 +21,9 @@ export default async function userRoutes(fastify, opts) {
       }
 
       const allWebsites = await db.collection('websites').find({ userId: user._id, deleted: { $ne: true } }).toArray()
-      if (allWebsites.length >= 5) {
-        reply.code(403).send({ error: 'Website limit reached. Please delete an existing website or contact support for a plan upgrade.' });
+      const limit = getWebsiteLimit(user)
+      if (allWebsites.length >= limit) {
+        reply.code(403).send({ error: `Website limit reached (${limit}). Please delete an existing website or upgrade your plan.` });
         return;
       }
 

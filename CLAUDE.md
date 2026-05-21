@@ -11,6 +11,14 @@ When making changes that affect architecture, routes, environment variables, sub
 - `packages/landing/public/llms.txt` — machine-readable feature summary consumed by AI tools; keep the check list and key facts in sync
 - `packages/landing/src/content/blog/introducing-statusscout.md` — lists every check type; update if checks are added or removed
 
+Always keep the CLAUDE.md as short as possible and only add things if they are crucial for your understanding of the app and the features.
+
+## Target Audience
+
+- **Agencies** — monitor all client sites from one dashboard
+- **Freelance developers** — catch issues before the client does; keep watch after handoff
+- **SaaS founders** — security and uptime coverage without a dedicated DevOps team
+
 ## Writing Style
 
 When writing any user-facing content (copy, emails, UI text, docs, marketing), follow the guide in [writing-style-guide.md](writing-style-guide.md).
@@ -93,10 +101,9 @@ ntfy is sent directly from the worker to `https://ntfy.sh/<topic>`. Email and SM
 ## Subscription Logic
 
 - **Trial**: 14 days, `subscription.expiresAt` set
-- **Pro**: Stripe subscription, `expiresAt: null`
+- **Pro** (Base plan): Stripe subscription, `expiresAt: null`, up to 5 websites
+- **Agency**: Stripe subscription, `expiresAt: null`, up to 20 websites
 - **Self-hosted** (no `STRIPE_SECRET_KEY`): Users get `plan: 'pro'` immediately, no expiry
-
-`isProUser()` in `packages/api/utils/user.js` — checks plan is `pro`/`trial` AND expiry not passed.
 
 ## Cron Schedule (`packages/cron/index.js`)
 
@@ -124,6 +131,7 @@ PASSWORD_HASH_SECRET Used with bcrypt for password hashing
 APP_URL              Frontend URL (used in email links, CORS)
 API_URL              API URL (used by cron/worker for internal calls)
 STRIPE_SECRET_KEY    Optional; if absent, all users get free pro access
+STRIPE_WEBHOOK_SECRET Stripe webhook signing secret; required for webhook validation
 CONCURRENT_RUNS      Worker concurrency (default 2)
 DISABLE_REGISTRATION If true, only allow first user to register as admin
 ```

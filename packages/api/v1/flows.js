@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb'
 import fastifyPassport from '@fastify/passport';
 import { connectDB } from '../db.js'
 import { getJobStatus, runJob } from '../utils/worker.js'
-import { hasActivePlan } from '../utils/user.js';
+import { hasActivePlan, getFlowLimit } from '../utils/user.js';
 
 export default async function flowRoutes(fastify, opts) {
   fastify.get('/flows',
@@ -77,8 +77,9 @@ export default async function flowRoutes(fastify, opts) {
         }
 
         const allFlows = await db.collection('flows').find({ websiteId: websiteId }).toArray();
-        if (allFlows.length >= 2) {
-          reply.code(400).send({ error: 'Maximum number of flows reached' });
+        const flowLimit = getFlowLimit(user)
+        if (allFlows.length >= flowLimit) {
+          reply.code(400).send({ error: `Maximum number of flows reached (${flowLimit})` });
           return;
         }
 

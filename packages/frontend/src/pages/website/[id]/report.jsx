@@ -17,7 +17,7 @@ function ReportPage() {
   const { data: user } = useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/user`)
   const { data: websites = [], isLoading: isLoadingWebsites } = useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/website`)
   const website = websites.find(w => w.index === id)
-  const { data: checkData = {}, isLoading: isLoadingChecks, mutate } = useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/check?id=${id}${jobId ? `&jobId=${jobId}` : ''}`)
+  const { data: checkData = {}, isLoading: isLoadingChecks, mutate } = useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/check?id=${id}${jobId ? `&jobId=${jobId}` : '&history=true'}`)
 
   const { checks = [], status = {} } = checkData
 
@@ -75,8 +75,6 @@ function ReportPage() {
   return (
     <Layout title="Website Report">
       <Container size="md" py="md" px={{ base: "0", md: "md" }}>
-        <Title size="h1" ta="center" mb="sm">Report</Title>
-
         {(isLoadingWebsites || isLoadingChecks) && <LoadingOverlay />}
         {!isLoadingWebsites && !website && <Card p="md" withBorder maw={600}>
           <Title order={2} mb="md">Website not found</Title>
@@ -84,10 +82,7 @@ function ReportPage() {
         </Card>}
 
         {!isLoadingWebsites && !isLoadingChecks && <>
-          <Text size="lg" ta="center">
-            For <a href={website?.domain} target='_blank' rel="noopener noreferrer">{new URL(website?.domain).hostname}</a> from {checks.length ? <i>{new Date(checks.length ? checks[0].createdAt : null).toLocaleString()}</i> : <></>}
-          </Text>
-          <Flex justify="flex-end" my="md">
+          <Flex justify="flex-end" mb="md">
             <Button
               onClick={generateReport}
               loading={loading}

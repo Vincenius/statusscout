@@ -45,6 +45,7 @@ export default async function checkRoutes(fastify, opts) {
       const query = request.query || {}
       const websiteId = query.id
       const jobId = query.jobId
+      const history = query.history === 'true'
       const userId = request.user?._id
 
       const db = await connectDB()
@@ -52,27 +53,32 @@ export default async function checkRoutes(fastify, opts) {
 
       if (website) {
         const status = await getJobStatus(jobId || website.lastCheckId)
-        const checks = jobId
-          ? await db.collection('checks').find({ websiteId: website._id, jobId: jobId }).toArray()
-          : await db.collection('checks').aggregate([
+
+        let checks
+        if (jobId) {
+          checks = await db.collection('checks').find({ websiteId: website._id, jobId }).toArray()
+        } else if (history) {
+          const thirtyDaysAgo = new Date()
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+          const thirtyDaysAgoIso = thirtyDaysAgo.toISOString()
+          checks = await db.collection('checks').aggregate([
+            { $match: { websiteId: website._id, createdAt: { $gte: thirtyDaysAgoIso } } },
+            { $sort: { check: 1, createdAt: -1 } },
+            { $group: { _id: '$check', entries: { $push: '$$ROOT' } } },
+            { $project: { _id: 0, check: '$_id', entries: { $slice: ['$entries', 200] } } },
+            { $unwind: '$entries' },
+            { $replaceRoot: { newRoot: '$entries' } },
+          ]).toArray()
+        } else {
+          checks = await db.collection('checks').aggregate([
             { $match: { websiteId: website._id } },
             { $sort: { check: 1, createdAt: -1 } },
-            {
-              $group: {
-                _id: "$check",
-                entries: { $push: "$$ROOT" }
-              }
-            },
-            {
-              $project: {
-                _id: 0,
-                check: "$_id",
-                entries: { $slice: ["$entries", 1] }
-              }
-            },
-            { $unwind: "$entries" },
-            { $replaceRoot: { newRoot: "$entries" } }
+            { $group: { _id: '$check', entries: { $push: '$$ROOT' } } },
+            { $project: { _id: 0, check: '$_id', entries: { $slice: ['$entries', 1] } } },
+            { $unwind: '$entries' },
+            { $replaceRoot: { newRoot: '$entries' } },
           ]).toArray()
+        }
 
         return { checks, status };
       } else {

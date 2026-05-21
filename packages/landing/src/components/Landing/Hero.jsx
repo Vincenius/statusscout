@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from '@mantine/form';
 import { ActionIcon, Anchor, Box, Flex, Image, Text, TextInput, ThemeIcon, Title, useMantineColorScheme } from '@mantine/core'
 import { IconArrowRight, IconBrandGithub, IconSearch } from '@tabler/icons-react'
@@ -27,9 +27,10 @@ function normalizeUrl(value) {
 }
 
 export default function Hero({ rotatingWords, renderTitle, description }) {
-  const formRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const [turnstileReady, setTurnstileReady] = useState(!import.meta.env.VITE_TURNSTILE_SITE_KEY);
   const { colorScheme } = useMantineColorScheme();
 
   useEffect(() => {
@@ -50,8 +51,7 @@ export default function Hero({ rotatingWords, renderTitle, description }) {
   });
 
   const handleSubmit = ({ url }) => {
-    const formData = new FormData(formRef.current);
-    const token = formData.get('cf-turnstile-response');
+    const token = turnstileToken;
     const normalizedUrl = normalizeUrl(url.trim());
 
     if (!isValidUrl(normalizedUrl)) {
@@ -118,7 +118,7 @@ export default function Hero({ rotatingWords, renderTitle, description }) {
           {description}
         </Text>
 
-        <form onSubmit={form.onSubmit(handleSubmit)} ref={formRef}>
+        <form onSubmit={form.onSubmit(handleSubmit)}>
           <Flex w="100%">
             <TextInput
               placeholder="https://www.yourdomain.com"
@@ -140,7 +140,7 @@ export default function Hero({ rotatingWords, renderTitle, description }) {
               aria-label="Run Check"
               w={60}
               h={60}
-              loading={loading}
+              loading={loading || !turnstileReady}
               style={{
                 borderTopLeftRadius: 0,
                 borderBottomLeftRadius: 0,
@@ -160,6 +160,15 @@ export default function Hero({ rotatingWords, renderTitle, description }) {
             <Box mb="lg">
               <Turnstile
                 siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => {
+                  setTurnstileToken(token);
+                  setTurnstileReady(true);
+                }}
+                onError={() => setTurnstileReady(true)}
+                onExpire={() => {
+                  setTurnstileToken(null);
+                  setTurnstileReady(false);
+                }}
                 options={{
                   theme: colorScheme === 'dark' ? 'dark' : 'light',
                   appearance: 'interaction-only',

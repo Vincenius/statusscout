@@ -1,4 +1,4 @@
-import { Accordion, Badge, Blockquote, Box, Button, Card, Center, Code, Flex, List, SimpleGrid, Table, Text, ThemeIcon, Title, Tooltip } from '@mantine/core'
+import { Accordion, ActionIcon, Anchor, Badge, Blockquote, Box, Button, Card, Center, Code, Divider, Flex, Group, List, Loader, Modal, Progress, SimpleGrid, Stack, Table, Text, ThemeIcon, Title, Tooltip } from '@mantine/core'
 import {
   SSLChart,
   HeaderChart,
@@ -14,13 +14,14 @@ import {
 } from './ResultCharts'
 import { getRecentChecks } from '@/utils/checks'
 import recommendedHeaders from '@/utils/headers'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import { Link } from 'react-router-dom'
 import { STEP_TYPES } from '@/utils/customFlows';
-import { IconCheck, IconX, IconSparkles, IconEye, IconCopy } from '@tabler/icons-react'
+import { IconCheck, IconX, IconSparkles, IconEye, IconCopy, IconBrandX, IconBrandLinkedin, IconLink, IconCode } from '@tabler/icons-react'
 import { useAuthSWR } from '@/utils/useAuthSWR'
 import { dnsChecksInfo } from '@statusscout/shared'
+import { computeSecurityScore } from '@statusscout/shared'
 import {
   generateSSLPrompt,
   generateHeadersPrompt,
@@ -32,6 +33,14 @@ import {
   generatePageAnalysisPrompt,
   generateApiDocsPrompt,
 } from '@/utils/promptTemplates'
+
+const GRADE_HEX = {
+  green: '#2f9e44',
+  teal: '#099268',
+  yellow: '#e67700',
+  orange: '#e8590c',
+  red: '#c92a2a',
+}
 
 function CopyPromptButton({ prompt }) {
   const [copied, setCopied] = useState(false)
@@ -59,7 +68,229 @@ function CopyPromptButton({ prompt }) {
   )
 }
 
-function Report({ website, checks, status, isQuickCheck = false }) {
+function BadgeModal({ opened, onClose, hostname }) {
+  const [copiedMd, setCopiedMd] = useState(false)
+  const [copiedHtml, setCopiedHtml] = useState(false)
+
+  const badgeUrl = `${import.meta.env.VITE_API_URL}/v1/badge/${hostname}`
+  const reportUrl = `${window.location.origin}/report/${hostname}`
+
+  const mdSnippet = `[![StatusScout Security Grade](${badgeUrl})](${reportUrl})`
+  const htmlSnippet = `<a href="${reportUrl}">\n  <img src="${badgeUrl}" alt="StatusScout Security Grade" />\n</a>`
+
+  const copy = (text, setCopied) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <Modal opened={opened} onClose={onClose} title="Embed your security badge" size="lg">
+      <Stack gap="md">
+        <Box>
+          <Text size="sm" fw={500} mb="xs">Live preview</Text>
+          <img src={badgeUrl} alt="StatusScout Security Grade" style={{ height: 20 }} />
+        </Box>
+
+        <Box>
+          <Group justify="space-between" mb={4}>
+            <Text size="sm" fw={500}>Markdown (GitHub README)</Text>
+            <Button size="xs" variant="subtle" onClick={() => copy(mdSnippet, setCopiedMd)}>
+              {copiedMd ? 'Copied!' : 'Copy'}
+            </Button>
+          </Group>
+          <Code block style={{ fontSize: 12, wordBreak: 'break-all' }}>{mdSnippet}</Code>
+        </Box>
+
+        <Box>
+          <Group justify="space-between" mb={4}>
+            <Text size="sm" fw={500}>HTML</Text>
+            <Button size="xs" variant="subtle" onClick={() => copy(htmlSnippet, setCopiedHtml)}>
+              {copiedHtml ? 'Copied!' : 'Copy'}
+            </Button>
+          </Group>
+          <Code block style={{ fontSize: 12 }}>{htmlSnippet}</Code>
+        </Box>
+
+        <Text size="xs" c="dimmed">Badge updates hourly. Grade reflects your latest full scan.</Text>
+      </Stack>
+    </Modal>
+  )
+}
+
+function ShareActions({ securityScore, website }) {
+  const [copiedLink, setCopiedLink] = useState(false)
+  const [badgeOpened, { open: openBadge, close: closeBadge }] = useDisclosure(false)
+
+  let hostname = ''
+  try { hostname = new URL(website?.domain || '').hostname } catch { hostname = '' }
+
+  const reportUrl = `${window.location.origin}/report/${hostname}`
+
+  const totalIssues = securityScore.issues.critical + securityScore.issues.high + securityScore.issues.medium + securityScore.issues.low
+  const issueText = totalIssues === 0
+    ? 'No issues found 🎉'
+    : [
+      securityScore.issues.critical > 0 && `${securityScore.issues.critical} critical`,
+      securityScore.issues.high > 0 && `${securityScore.issues.high} high`,
+    ].filter(Boolean).join(' / ') + ' issues found'
+
+  const tweetText = encodeURIComponent(
+    `My site ${hostname} just scored ${securityScore.score}/100 (Grade ${securityScore.grade}) on a security scan by @StatusScout.\n\n${issueText}\n\nScan yours free: https://statusscout.dev`
+  )
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}`
+
+  const linkedinShareUrl = encodeURIComponent(website?.publicReport ? reportUrl : 'https://statusscout.dev')
+  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${linkedinShareUrl}`
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(reportUrl)
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 2000)
+  }
+
+  return (
+    <>
+      <Box mt="lg">
+        <Text size="xs" c="dimmed" ta="center" mb="xs">Share your score</Text>
+        <Group justify="center" gap="xs">
+          <Tooltip label="Share on X / Twitter" withArrow>
+            <ActionIcon
+              variant="outline"
+              size="lg"
+              color="gray"
+              component="a"
+              href={twitterUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <IconBrandX size={16} />
+            </ActionIcon>
+          </Tooltip>
+
+          <Tooltip label="Share on LinkedIn" withArrow>
+            <ActionIcon
+              variant="outline"
+              size="lg"
+              color="gray"
+              component="a"
+              href={linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <IconBrandLinkedin size={16} />
+            </ActionIcon>
+          </Tooltip>
+
+          {website?.publicReport && (
+            <Tooltip label={copiedLink ? 'Copied!' : 'Copy report link'} withArrow>
+              <ActionIcon
+                variant="outline"
+                size="lg"
+                color={copiedLink ? 'green' : 'gray'}
+                onClick={copyLink}
+              >
+                <IconLink size={16} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+
+          {website?.publicReport && (
+            <Tooltip label="Get embed badge" withArrow>
+              <ActionIcon
+                variant="outline"
+                size="lg"
+                color="gray"
+                onClick={openBadge}
+              >
+                <IconCode size={16} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </Group>
+      </Box>
+
+      <BadgeModal opened={badgeOpened} onClose={closeBadge} hostname={hostname} />
+    </>
+  )
+}
+
+function ScanProgressScreen({ sslCheck, headersCheck, cookieCheck, fuzzCheck, dnsCheck, mixedContentCheck, pageAnalysisCheck, apiDocsCheck, isQuickCheck, waitingIndex }) {
+  const checkItems = [
+    { label: 'SSL Certificate', result: sslCheck },
+    { label: 'Security Headers', result: headersCheck },
+    { label: 'Cookie Security', result: cookieCheck },
+    { label: 'Sensitive Files', result: fuzzCheck },
+    { label: 'DNS Records', result: dnsCheck },
+    { label: 'Mixed Content', result: mixedContentCheck },
+    { label: 'Page Security', result: pageAnalysisCheck },
+    { label: 'Exposed APIs', result: apiDocsCheck },
+  ]
+
+  const completed = checkItems.filter(c => c.result).length
+  const total = checkItems.length
+  const progress = completed === 0 ? 5 : Math.round((completed / total) * 100)
+  const inQueue = waitingIndex != null
+
+  return (
+    <Card p="xl" withBorder shadow="md">
+      <Stack gap="xl" align="center" py="md">
+        <Stack align="center" gap="sm">
+          {inQueue ? (
+            <>
+              <Loader size="md" />
+              <Title order={2} ta="center">You're in the queue</Title>
+              <Text c="dimmed" ta="center">
+                Our system is handling a high volume of checks.<br />
+                Position in queue: <strong>#{waitingIndex + 1}</strong>
+              </Text>
+            </>
+          ) : (
+            <Title order={2} ta="center">Scanning your website…</Title>
+          )}
+        </Stack>
+
+        {!inQueue && (
+          <>
+            <Box w="100%" maw={480}>
+              <Progress value={progress} size="md" animated striped mb={6} />
+              <Text size="xs" c="dimmed" ta="center">{completed} of {total} checks complete</Text>
+            </Box>
+
+            <Stack gap={4} w="100%" maw={480}>
+              {checkItems.map(({ label, result }, i) => (
+                <Group key={i} gap="sm" py="xs">
+                  <Box w={20} style={{ flexShrink: 0 }}>
+                    {result
+                      ? <IconCheck size={16} color="var(--mantine-color-green-6)" />
+                      : <Loader size={14} color="gray" />
+                    }
+                  </Box>
+                  <Text size="sm" style={{ flex: 1 }} c={result ? undefined : 'dimmed'}>{label}</Text>
+                  {result ? (
+                    <Badge size="xs" color={result.result.status === 'success' ? 'green' : 'orange'} variant="light">
+                      {result.result.status === 'success' ? 'OK' : 'Issues found'}
+                    </Badge>
+                  ) : (
+                    <Text size="xs" c="dimmed">scanning…</Text>
+                  )}
+                </Group>
+              ))}
+            </Stack>
+          </>
+        )}
+
+        <Text size="xs" c="dimmed" ta="center">
+          {inQueue
+            ? 'Hang tight — your security scan will begin shortly.'
+            : 'Your security grade will appear when all checks are complete.'}
+        </Text>
+      </Stack>
+    </Card>
+  )
+}
+
+function Report({ website, checks, status, isQuickCheck = false, isPublicReport = false }) {
   const {
     fuzzCheck,
     headersCheck,
@@ -72,9 +303,11 @@ function Report({ website, checks, status, isQuickCheck = false }) {
     apiDocsCheck,
   } = getRecentChecks(checks)
 
-  const { data: flows = [], isLoading: isLoadingFlows } = !isQuickCheck
-    ? useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/flows?websiteId=${website.index}`)
-    : { data: [], isLoading: false };
+  const { data: flows = [], isLoading: isLoadingFlows } = useAuthSWR(
+    (!isQuickCheck && !isPublicReport)
+      ? `${import.meta.env.VITE_API_URL}/v1/flows?websiteId=${website?.index}`
+      : null
+  )
   const customFlowLength = (status?.state === 'completed' || isLoadingFlows)
     ? customChecks.length
     : flows.length
@@ -84,7 +317,6 @@ function Report({ website, checks, status, isQuickCheck = false }) {
   const missingOptionalHeaders = headersCheck?.result?.details?.missingOptionalHeaders || [];
   const displayedHeaders = expandHeaders ? missingHeaders : missingHeaders.slice(0, 3);
 
-  // Exposed files table expand state
   const [expandFiles, setExpandFiles] = useState(false);
   const exposedFiles = fuzzCheck?.result?.details?.files || [];
   const displayedFiles = expandFiles ? exposedFiles : exposedFiles.slice(0, 5);
@@ -101,6 +333,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
   const apiDocsRef = useRef(null);
 
   const checkState = status?.state
+  const showLoadingScreen = checkState === 'active' || status?.waitingIndex != null
 
   const hasDnsIssues = dnsCheck ? Object.values(dnsCheck.result.details).filter(d => !d.success).length !== 0 : false
   const hasMissingHeaders = missingHeaders.length !== 0
@@ -117,10 +350,14 @@ function Report({ website, checks, status, isQuickCheck = false }) {
   const hasExposedApis = apiDocsCheck ? apiDocsCheck.result.details.exposed.length !== 0 : false
   const hasPageIssues = pageAnalysisCheck
     ? (pageAnalysisCheck.result.details.verboseErrors ||
-       (pageAnalysisCheck.result.details.sriIssues?.length ?? 0) !== 0 ||
-       (pageAnalysisCheck.result.details.csrfIssues?.length ?? 0) !== 0 ||
-       (pageAnalysisCheck.result.details.dirListingIssues?.length ?? 0) !== 0)
+      (pageAnalysisCheck.result.details.sriIssues?.length ?? 0) !== 0 ||
+      (pageAnalysisCheck.result.details.csrfIssues?.length ?? 0) !== 0 ||
+      (pageAnalysisCheck.result.details.dirListingIssues?.length ?? 0) !== 0)
     : false
+
+  const securityScore = checkState === 'completed'
+    ? computeSecurityScore({ sslCheck, fuzzCheck, headersCheck, dnsCheck, cookieCheck, mixedContentCheck, pageAnalysisCheck, apiDocsCheck, exposedFiles, missingHeaders })
+    : null
 
   const scrollToRef = (ref) => {
     ref.current?.scrollIntoView({ behavior: 'smooth' });
@@ -128,23 +365,87 @@ function Report({ website, checks, status, isQuickCheck = false }) {
 
   return (
     <div>
-      <Card p="md" withBorder shadow="md">
-        {status?.waitingIndex !== null && <Card.Section py="xl" px={{ base: "md", md: "xl" }} >
-          <Blockquote p="md" my="md" maw={600} mx="auto">
-            <Title order={2} size="h2" ta="center" mb="md">You're in the Queue</Title>
+      {showLoadingScreen && (
+        <ScanProgressScreen
+          sslCheck={sslCheck}
+          headersCheck={headersCheck}
+          cookieCheck={cookieCheck}
+          fuzzCheck={fuzzCheck}
+          dnsCheck={dnsCheck}
+          mixedContentCheck={mixedContentCheck}
+          pageAnalysisCheck={pageAnalysisCheck}
+          apiDocsCheck={apiDocsCheck}
+          isQuickCheck={isQuickCheck}
+          waitingIndex={status?.waitingIndex}
+        />
+      )}
+      {!showLoadingScreen && checkState === 'failed' && (
+        <Card p="md" withBorder shadow="md">
+          <Card.Section py="xl" px={{ base: "md", md: "xl" }}>
+            <Blockquote p="md" my="md" maw={600} mx="auto" color="red">
+              <Title order={2} size="h2" ta="center" mb="md">Check Failed</Title>
+              <Text size="md" mb="md">Unfortunately, we encountered an error while processing your website health check.</Text>
+              <Text size="md">Please try again later or contact support if the issue persists.</Text>
+            </Blockquote>
+          </Card.Section>
+        </Card>
+      )}
+      {!showLoadingScreen && checkState !== 'failed' && <Card p="md" py="0" withBorder shadow="md">
+        {securityScore && (
+          <Card.Section py="xl" px={{ base: "md", md: "xl" }} withBorder>
+            <Stack align="center" gap="2em">
+              <Title order={1} fw={600} tt="uppercase" style={{ letterSpacing: '0.08em' }}>Security Report</Title>
 
-            <Text size="md" mb="md">Our system is handling a high volume of checks.<br />Hang tight — your website health check will begin shortly.</Text>
-            <Text size="md">Current position in queue: <b>#{status?.waitingIndex + 1}</b></Text>
-          </Blockquote>
-        </Card.Section>}
-        {status?.state === 'failed' && <Card.Section py="xl" px={{ base: "md", md: "xl" }} >
-          <Blockquote p="md" my="md" maw={600} mx="auto" color="red">
-            <Title order={2} size="h2" ta="center" mb="md">Check Failed</Title>
+              <Group gap={{ base: 'lg', sm: 'xl' }} align="center" justify="center" wrap="wrap">
+                <Box
+                  px="xl"
+                  py="lg"
+                  bg={`${securityScore.color}.0`}
+                  style={{ borderRadius: 12 }}
+                >
+                  <Text fw={900} c={securityScore.color} style={{ fontSize: '3.5rem', lineHeight: 1 }}>{securityScore.grade}</Text>
+                </Box>
+                <Flex align="space-between" direction="column">
+                  {website?.domain && (() => {
+                    let hostname
+                    try { hostname = new URL(website.domain).hostname } catch { hostname = website.domain }
+                    return (
+                      <>
+                        <Anchor href={website.domain} target="_blank" rel="noopener noreferrer" size="sm" fw={600}>{hostname}</Anchor>
+                        {checks.length > 0 && (
+                          <Text size="xs" c="dimmed">{new Date(checks[0].createdAt).toLocaleString()}</Text>
+                        )}
+                      </>
+                    )
+                  })()}
+                  <Text fw={800} mt="sm" c={securityScore.color} style={{ fontSize: '3rem', lineHeight: 1 }}>
+                    {securityScore.score} <Text size="sm" c="dimmed" fw={500} component='span'>/ 100</Text>
+                  </Text>
+                </Flex>
+              </Group>
 
-            <Text size="md" mb="md">Unfortunately, we encountered an error while processing your website health check.</Text>
-            <Text size="md">Please try again later or contact support if the issue persists.</Text>
-          </Blockquote>
-        </Card.Section>}
+              {securityScore.issues.critical + securityScore.issues.high + securityScore.issues.medium + securityScore.issues.low > 0 && (
+                <Flex gap="sm" justify="center" wrap="wrap">
+                  {securityScore.issues.critical > 0 && (
+                    <Badge color="red" size="lg" variant="filled" radius="sm">{securityScore.issues.critical} Critical</Badge>
+                  )}
+                  {securityScore.issues.high > 0 && (
+                    <Badge color="orange" size="lg" variant="filled" radius="sm">{securityScore.issues.high} High</Badge>
+                  )}
+                  {securityScore.issues.medium > 0 && (
+                    <Badge color="yellow" size="lg" variant="light" radius="sm">{securityScore.issues.medium} Medium</Badge>
+                  )}
+                  {securityScore.issues.low > 0 && (
+                    <Badge color="blue" size="lg" variant="light" radius="sm">{securityScore.issues.low} Low</Badge>
+                  )}
+                </Flex>)
+              }
+
+              <ShareActions securityScore={securityScore} website={website} />
+            </Stack>
+          </Card.Section>
+        )}
+
         <Card.Section py="xl" px={{ base: "md", md: "xl" }}>
           <SimpleGrid cols={{ base: 2, xs: 3, lg: 5 }} spacing="xl" mb="md">
             <Flex direction="column" align="center" onClick={() => scrollToRef(sslRef)} style={{ cursor: 'pointer' }}>
@@ -192,34 +493,12 @@ function Report({ website, checks, status, isQuickCheck = false }) {
               {!apiDocsCheck && <LoadingChart label="Exposed APIs" checkState={checkState} />}
             </Flex>
 
-            {!isQuickCheck && <Flex direction="column" align="center" onClick={() => scrollToRef(customFlowsRef)} style={{ cursor: 'pointer' }}>
+            {!isQuickCheck && !isPublicReport && <Flex direction="column" align="center" onClick={() => scrollToRef(customFlowsRef)} style={{ cursor: 'pointer' }}>
               {customChecks && <CustomFlowsChart checks={customChecks} customFlowLength={customFlowLength} />}
               {!customChecks && <LoadingChart label="Custom Flows" checkState={checkState} />}
             </Flex>}
           </SimpleGrid>
         </Card.Section>
-        {isQuickCheck && <Card.Section py="xl" px={{ base: "md", md: "xl" }} withBorder>
-          <Title order={2} size="h3" mb="lg" ta="center">
-            Keep monitoring — don't just scan once
-          </Title>
-          <List size="md" mb="xl" spacing="sm" center mx="auto" style={{ maxWidth: 500 }}>
-            <List.Item>
-              Get alerted the moment new security issues appear
-            </List.Item>
-            <List.Item>
-              Continuous checks every 5 minutes, 6 hours, and daily
-            </List.Item>
-            <List.Item>
-              Simulate signups and checkouts with custom test flows
-            </List.Item>
-          </List>
-          <Button component={Link} to="/register" variant="filled" size="sm" mx="auto" display="block" w={250}>
-            Start Free 14-Day Trial
-          </Button>
-          <Text size="sm" c="dimmed" ta="center" mt="xs">
-            *No credit card required. Cancel any time.
-          </Text>
-        </Card.Section>}
         <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={sslRef}>
           <Flex gap="xl" align="center" wrap="wrap">
             <Box style={{ flexShrink: 0 }}>
@@ -250,7 +529,6 @@ function Report({ website, checks, status, isQuickCheck = false }) {
               <Title order={3} mb="xs">Sensitive Files</Title>
               <Text size="sm" c="dimmed">Identifies publicly accessible files that may contain confidential information, helping to prevent data breaches and enhance website security.</Text>
               {fuzzCheck && exposedFiles.length === 0 && <Text size="sm" mt="xs" c="green">No exposed files found.</Text>}
-              {isQuickCheck && <Text size="sm" mt="xs" c="dimmed" fs="italic">Quick check scan is limited to 165 most common files. Sign-up for a full scan.</Text>}
             </Box>
           </Flex>
 
@@ -432,11 +710,11 @@ function Report({ website, checks, status, isQuickCheck = false }) {
           {headersCheck?.result?.details?.httpsRedirect &&
             !headersCheck.result.details.httpsRedirect.redirects &&
             !headersCheck.result.details.httpsRedirect.connectionFailed && (
-            <Blockquote color="orange" p="md" my="md">
-              <Text fw="bold" mb="xs">HTTP not redirecting to HTTPS</Text>
-              <Text size="sm">Your site is reachable over plain HTTP without being redirected to HTTPS. Users typing your domain without <code>https://</code> will connect insecurely. Add a permanent 301 redirect in your server or hosting config.</Text>
-            </Blockquote>
-          )}
+              <Blockquote color="orange" p="md" my="md">
+                <Text fw="bold" mb="xs">HTTP not redirecting to HTTPS</Text>
+                <Text size="sm">Your site is reachable over plain HTTP without being redirected to HTTPS. Users typing your domain without <code>https://</code> will connect insecurely. Add a permanent 301 redirect in your server or hosting config.</Text>
+              </Blockquote>
+            )}
 
           {headersCheck?.result?.details?.corsWildcard && (
             <Blockquote color="orange" p="md" my="md">
@@ -554,7 +832,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
               <Text size="sm" c="dimmed" mt="xs">Add an <code>integrity</code> attribute to each tag. Use <a href="https://www.srihash.org/" target="_blank" rel="noopener noreferrer">srihash.org</a> to generate hashes.</Text>
             </>}
 
-            {pageAnalysisCheck.result.details.csrfIssues?.length > 0&& <>
+            {pageAnalysisCheck.result.details.csrfIssues?.length > 0 && <>
               <Text size="md" mt="xl" mb="sm" fs="italic">POST forms without a CSRF token field:</Text>
               <Table striped withTableBorder>
                 <Table.Thead><Table.Tr><Table.Td>Form action</Table.Td></Table.Tr></Table.Thead>
@@ -613,7 +891,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
           </>}
         </Card.Section>
 
-        {!isQuickCheck &&
+        {!isQuickCheck && !isPublicReport &&
           <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={customFlowsRef}>
             <Flex gap="xl" align="center" wrap="wrap" mb={customFlowLength !== 0 ? 'xl' : 0}>
               <Box style={{ flexShrink: 0 }}>
@@ -677,8 +955,8 @@ function Report({ website, checks, status, isQuickCheck = false }) {
             </>}
           </Card.Section>
         }
-      </Card>
-    </div >
+      </Card>}
+    </div>
   )
 }
 

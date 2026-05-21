@@ -70,6 +70,7 @@ export default async function userRoutes(fastify, opts) {
           dailyChannel: w.dailyChannel || 'disabled',
           criticalChannel: w.criticalChannel || 'disabled',
           notifications: w.notifications || {},
+          publicReport: w.publicReport || false,
         }))
       } catch (e) {
         console.error(e)
@@ -197,6 +198,33 @@ export default async function userRoutes(fastify, opts) {
       } catch (e) {
         console.error(e)
         reply.code(500).send({ error: 'Internal server error' });
+      }
+    })
+
+  fastify.put('/public-report',
+    { preValidation: fastifyPassport.authenticate('session', { failureRedirect: '/login' }) },
+    async (request, reply) => {
+      try {
+        const user = request.user
+        const body = request.body || {}
+
+        const db = await connectDB()
+        const website = await db.collection('websites').findOne({ _id: new ObjectId(body.websiteId), userId: user._id })
+        if (!website) {
+          reply.code(404).send({ error: 'Website not found' })
+          return
+        }
+
+        const newValue = !website.publicReport
+        await db.collection('websites').updateOne(
+          { _id: new ObjectId(body.websiteId), userId: user._id },
+          { $set: { publicReport: newValue } }
+        )
+
+        return { publicReport: newValue }
+      } catch (e) {
+        console.error(e)
+        reply.code(500).send({ error: 'Internal server error' })
       }
     })
 

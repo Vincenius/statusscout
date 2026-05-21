@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from "react-router-dom";
 import Layout from '@/components/Layout/Layout'
-import { Blockquote, Box, Button, Card, Container, Flex, List, Loader, Overlay, Text, Title } from '@mantine/core'
+import { Blockquote, Box, Button, Card, Container, Group, Text, Title } from '@mantine/core'
 import { trackEvent } from '@/utils/trackEvent'
 import { useNavigate, Link } from 'react-router-dom'
 import Report from '@/components/Report/Report';
@@ -94,14 +94,9 @@ function QuickCheck() {
   const { checks = [], quickcheckId } = result
 
   return (
-    <Layout title="Quick Check" isPublicRoute logoLink="https://statusscout.dev/">
+    <Layout title="Quick Check" isPublicRoute logoLink={import.meta.env.VITE_BASE_URL || '/'}>
       <Container size="md" py="md" px={{ base: "0", md: "md" }}>
         <Box>
-           <Title size="h1" ta="center" mb="sm">Your Security Scan Results</Title>
-          {url && <Text size="xl" ta="center" mb="md">
-            For <a href={url} target='_blank' rel="noopener noreferrer">{new URL(url).hostname}</a> {checks.length ? <>from  <i>{new Date(checks.length ? checks[0].createdAt : null).toLocaleString()}</i></> : <></>}
-          </Text> }
-
           <Report
             website={{ domain: url }}
             checks={checks}
@@ -109,21 +104,16 @@ function QuickCheck() {
             isQuickCheck={true}
           />
 
-          <Card withBorder shadow="sm" p="lg" radius="md" mb="md" mt="md">
-            <Flex h="100%" direction="column" gap="md" p="md">
-              <Title order={2} size="h1" fw="normal" ta="center" mb="md">Keep monitoring — don't just scan once</Title>
-              <List size="lg" spacing="sm" mb="md">
-                <List.Item>Get alerted the moment new security issues appear</List.Item>
-                <List.Item>Continuous checks every 5 minutes, 6 hours, and daily</List.Item>
-                <List.Item>Simulate signups and checkouts with custom test flows</List.Item>
-              </List>
-              <Button size="lg" component={Link} to={'/register'}>
-                Start Free 14-Day Trial
+          <Card withBorder p="md" mt="xl" radius="md">
+            <Group justify="space-between" wrap="wrap" gap="sm">
+              <Box>
+                <Text fw={500} size="sm">Want continuous monitoring?</Text>
+                <Text size="xs" c="dimmed">Alerts, scheduled checks, and custom test flows — free for 14 days.</Text>
+              </Box>
+              <Button size="sm" variant="outline" component={Link} to="/register">
+                Start free trial →
               </Button>
-              <Text fz="sm">
-                * No credit card required. Cancel anytime.
-              </Text>
-            </Flex>
+            </Group>
           </Card>
         </Box>
       </Container>

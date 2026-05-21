@@ -25,7 +25,6 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
     ? useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/website`)
     : { data: [], error: null, isLoading: false };
 
-  const menuEnabled = websites.length > 0;
   const expiresAt = new Date(user?.subscription?.expiresAt);
   const now = new Date();
   const hasStripe = Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -127,12 +126,6 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
         });
     }
   }, [navigate]);
-
-  useEffect(() => {
-    if (user.email && !isLoadingWebsite && websites.length === 0 && window.location.pathname !== '/onboarding') {
-      navigate('/onboarding');
-    }
-  }, [user, websites, isLoadingWebsite])
 
   return <>
     <Helmet>
@@ -237,7 +230,6 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
             leftSection={<IconDashboard size={16} stroke={1.5} />}
             active={window.location.pathname === '/dashboard'}
             component={Link}
-            disabled={!menuEnabled}
             to="/dashboard"
           />
           {websites.length > 0 && <Text size="sm" c="dimmed" mt="md" mb="xs" pl="sm">Websites</Text>}
@@ -246,7 +238,6 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
               key={w.id}
               label={new URL(w?.domain).hostname}
               leftSection={<IconAppWindow size={16} stroke={1.5} />}
-              disabled={!menuEnabled}
               defaultOpened={window.location.pathname.startsWith(`/website/${w.index}`)}
             >
               <NavLink
@@ -280,7 +271,7 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
             leftSection={<IconCirclePlus size={16} stroke={1.5} />}
             active={window.location.pathname === '/website/new'}
             component={Link}
-            disabled={!menuEnabled || (hasStripe && websites.length >= 5) || !user?.isProUser}
+            disabled={(hasStripe && websites.length >= 5) || !user?.isProUser}
             to="/website/new"
           />
         </AppShell.Section>
@@ -299,7 +290,7 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
           {(!isLoadingUser && !isLoadingWebsite) && <>
             {!isPublicRoute && user.email && !user.confirmed && (
               <Alert color="yellow" mb="md">
-                Please confirm your email address to receive notifications. Check your inbox for a confirmation link.
+                Please confirm your email address to receive notifications.
               </Alert>
             )}
             {children}

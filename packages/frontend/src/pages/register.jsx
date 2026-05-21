@@ -54,7 +54,7 @@ function Register() {
             value: 1.0,
           });
 
-          navigate("/confirm");
+          navigate("/dashboard");
         })
       } else {
         if (res.status === 409) {

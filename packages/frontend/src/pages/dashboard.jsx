@@ -4,6 +4,7 @@ import { useAuthSWR } from '@/utils/useAuthSWR'
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
+import CreateWebsite from '@/components/Website/CreateWebsite';
 
 function Dashboard() {
   const { data: websites = [] } = useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/website`)
@@ -33,25 +34,34 @@ function Dashboard() {
 
   return (
     <Layout title="Dashboard">
-      <Title order={1} size="h1" ta="center" mb="xl" mt="md">Dashboard</Title>
-
-      <Box maw={1800} mx="auto">
-        {!user?.isProUser && <Blockquote maw={600} mx="auto" mb="xl">
-          <Text fw={500} mb="md">Your Pro subscription expired. Please renew your subscription to continue using premium features like getting notifications.</Text>
-          <Button component={Link} to="/checkout">Buy Pro Subscription</Button>
-        </Blockquote>}
-        <Title order={2} mb="md" fw="normal">Your Websites:</Title>
-        <Flex gap="md" direction="row" wrap="wrap" mb="md">
-          {websites.map(website => (
-            <Card key={website.domain} withBorder p="md" mb="md" shadow='md' style={{ maxWidth: 500, textDecoration: 'none', flex: '1 1 calc(33% - 1rem)' }}>
-              <Title order={3}>{new URL(website.domain).hostname}</Title>
-              <Text mb="sm">Last checked at: {website.recentCheck ? new Date(website.recentCheck).toLocaleString() : 'No checks yet'}</Text>
-              <Button variant="outline" component={Link} to={`/website/${website.index}`} >View Details</Button>
-            </Card>
-          ))}
-        </Flex>
-      </Box>
-    </Layout >
+      {websites.length === 0 ? (
+        <>
+          <Title order={1} ta="center" mt="xl" mb="xs">Welcome to StatusScout!</Title>
+          <Text ta="center" c="dimmed">Thanks for signing up. Add your first website to start monitoring.</Text>
+          <CreateWebsite title="Add your first website" />
+        </>
+      ) : (
+        <>
+          <Title order={1} size="h1" ta="center" mb="xl" mt="md">Dashboard</Title>
+          <Box maw={1800} mx="auto">
+            {!user?.isProUser && <Blockquote maw={600} mx="auto" mb="xl">
+              <Text fw={500} mb="md">Your Pro subscription expired. Please renew your subscription to continue using premium features like getting notifications.</Text>
+              <Button component={Link} to="/checkout">Buy Pro Subscription</Button>
+            </Blockquote>}
+            <Title order={2} mb="md" fw="normal">Your Websites:</Title>
+            <Flex gap="md" direction="row" wrap="wrap" mb="md">
+              {websites.map(website => (
+                <Card key={website.domain} withBorder p="md" mb="md" shadow='md' style={{ maxWidth: 500, textDecoration: 'none', flex: '1 1 calc(33% - 1rem)' }}>
+                  <Title order={3}>{new URL(website.domain).hostname}</Title>
+                  <Text mb="sm">Last checked at: {website.recentCheck ? new Date(website.recentCheck).toLocaleString() : 'No checks yet'}</Text>
+                  <Button variant="outline" component={Link} to={`/website/${website.index}`}>View Details</Button>
+                </Card>
+              ))}
+            </Flex>
+          </Box>
+        </>
+      )}
+    </Layout>
   )
 }
 

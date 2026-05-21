@@ -82,7 +82,7 @@ export default async function authRoutes(fastify, opts) {
       await db.collection('users').updateOne({ confirmationToken: token }, { $set: { confirmed: true } });
     }
 
-    reply.redirect(`${process.env.APP_URL}/onboarding`);
+    reply.redirect(`${process.env.APP_URL}/dashboard`);
   });
 
 

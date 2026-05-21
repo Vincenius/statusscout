@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useForm } from '@mantine/form';
 import { ActionIcon, Anchor, Box, Flex, Image, Text, TextInput, ThemeIcon, Title, useMantineColorScheme } from '@mantine/core'
+
 import { IconArrowRight, IconBrandGithub, IconSearch } from '@tabler/icons-react'
 import { trackEvent } from '@/utils/trackEvent'
 import { Turnstile } from '@marsidev/react-turnstile'
@@ -40,8 +41,6 @@ export default function Hero({ rotatingWords, renderTitle, description }) {
     }, 2800);
     return () => clearInterval(interval);
   }, [rotatingWords.length]);
-
-  const heroImage = colorScheme === 'dark' ? '/screenshot-dark.png' : '/screenshot-light.png';
 
   const form = useForm({
     initialValues: { url: '' },
@@ -193,7 +192,10 @@ export default function Hero({ rotatingWords, renderTitle, description }) {
         </Anchor>
       </Flex>
 
-      <Image src={heroImage} alt="StatusScout security scan screenshot" w={300} />
+      <Box style={{ width: 300, flexShrink: 0 }}>
+        <Image src="/screenshot-light.png" alt="StatusScout security scan screenshot" w={300} className={classes.screenshotLight} />
+        <Image src="/screenshot-dark.png" alt="StatusScout security scan screenshot" w={300} className={classes.screenshotDark} />
+      </Box>
     </Flex>
   );
 }

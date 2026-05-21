@@ -358,7 +358,7 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
   const apiDocsRef = useRef(null);
 
   const checkState = status?.state
-  const showLoadingScreen = checkState === 'active' || status?.waitingIndex != null
+  const showLoadingScreen = (isQuickCheck && !checkState) || checkState === 'active' || status?.waitingIndex != null
 
   const hasDnsIssues = dnsCheck ? Object.values(dnsCheck.result.details).filter(d => !d.success).length !== 0 : false
   const hasMissingHeaders = missingHeaders.length !== 0

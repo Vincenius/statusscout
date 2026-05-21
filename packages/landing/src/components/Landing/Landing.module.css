@@ -116,6 +116,12 @@
   background-size: 40px 40px, 40px 40px, 40px 40px, 40px 40px;
 }
 
+.screenshotLight { display: block; }
+.screenshotDark  { display: none; }
+
+[data-mantine-color-scheme="dark"] .screenshotLight { display: none; }
+[data-mantine-color-scheme="dark"] .screenshotDark  { display: block; }
+
 .featureTitle {
   &::after {
     content: '';

@@ -153,27 +153,6 @@ export function FuzzChart({ status, files, size = 'md', showLabel = true }) {
   );
 }
 
-export function BrokenLinksChart({ brokenLinks, size = 'md', showLabel = true }) {
-  const s = sizes[size] || sizes.md;
-  return (
-    <Flex direction="column" align="center">
-      <RingProgress
-        size={s.ring}
-        roundCaps
-        thickness={s.thickness}
-        sections={[{ value: 100, color: brokenLinks.length === 0 ? 'green' : 'yellow' }]}
-        label={
-          <Center>
-            {brokenLinks.length === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
-            {brokenLinks.length > 0 && <Text c="yellow" fw="bold" size={s.text}>{brokenLinks.length}</Text>}
-          </Center>
-        }
-      />
-      {showLabel && <Text size={s.text}>Broken Links</Text>}
-    </Flex>
-  );
-}
-
 export function PageAnalysisChart({ details, size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
   const issueCount =

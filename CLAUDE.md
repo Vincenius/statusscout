@@ -4,7 +4,12 @@ Website monitoring & security scanning platform. Self-hosted, Node.js monorepo.
 
 ## Keeping This File Up to Date
 
-When making changes that affect architecture, routes, environment variables, subscription logic, check types, or any other facts documented here, update this file and `README.MD` as part of the same task. Do the same for the README when it documents something that has changed.
+When making changes that affect architecture, routes, environment variables, subscription logic, check types, or any other facts documented here, update all of the following files as part of the same task:
+
+- `CLAUDE.md` (this file)
+- `README.MD`
+- `packages/landing/public/llms.txt` — machine-readable feature summary consumed by AI tools; keep the check list and key facts in sync
+- `packages/landing/src/content/blog/introducing-statusscout.md` — lists every check type; update if checks are added or removed
 
 ## Writing Style
 
@@ -48,10 +53,9 @@ MongoDB (`status-check` database) + Redis (BullMQ queue named `checks`).
 
 | Type | When | Runs |
 |------|------|------|
-| `quick` | Every 5 min | headers + ssl |
-| `extended` | Every 6 hrs | + fuzz + dns + custom flows |
-| `full` | Daily at 04:00 | + broken links |
-| `free` | On-demand (public) | Same as full but uses smaller fuzz list |
+| `quick` | Every 5 min | uptime + headers + ssl + cookies |
+| `full` | Every 6 hrs + daily at 04:00 | all checks: + fuzz + dns + mixedcontent + pageanalysis + apidocs + custom flows |
+| `free` | On-demand (public) | same as `full` but without custom flows |
 
 ## API Routes (all prefixed `/v1`)
 
@@ -72,10 +76,7 @@ See `packages/api/v1/*.js` for the full route list.
 | `mixedcontent.js` | `mixedcontent` | HTTP resources loaded on HTTPS pages |
 | `pageanalysis.js` | `pageanalysis` | Verbose error pages, missing SRI on CDN resources, POST forms without CSRF tokens, directory listings |
 | `apidocs.js` | `apidocs` | Publicly accessible API docs (Swagger, OpenAPI, GraphQL) |
-| `links.js` | `links` | Crawl & detect broken links |
 | `custom.js` | `custom` | User-defined Playwright DSL flows |
-
-`lighthouse.js` and `performance.js` exist but are no longer used.
 
 ## Notification System
 
@@ -104,7 +105,7 @@ ntfy is sent directly from the worker to `https://ntfy.sh/<topic>`. Email and SM
 04:00 daily    tryRun('full')
 05:00 daily    runNotifications() — daily digests
 10:00 daily    trial + feedback emails (if SEND_EMAILS=true)
-Every 6hr :10  tryRun('extended')
+Every 6hr :10  tryRun('full')
 Every 5min :20 tryRun('quick')
 ```
 

@@ -73,29 +73,6 @@ ${sections.join('\n\n')}
 Figure out which web server or hosting setup I'm using by reading my codebase and config files, then show me how to block access to each one. If you can't tell, ask me. Also tell me which of these files I should delete entirely rather than just block.`
 }
 
-export function generateLinksPrompt(domain, brokenLinks) {
-  const isInternal = url => url.includes(domain)
-  const internal = brokenLinks.filter(l => isInternal(l.url))
-  const external = brokenLinks.filter(l => !isInternal(l.url))
-
-  const fmt = list => list.slice(0, 20).map(l => `- [${l.status}] ${l.url} (on: ${l.parent})`).join('\n')
-  const overflow = (list, label) => list.length > 20 ? `...and ${list.length - 20} more ${label} links.` : ''
-
-  const sections = []
-  if (internal.length) {
-    sections.push(`Internal broken links — find and fix or remove these in my codebase:\n${fmt(internal)}${overflow(internal, 'internal')}`)
-  }
-  if (external.length) {
-    sections.push(`External broken links — these point to dead third-party URLs; I need to update the destination or remove the link:\n${fmt(external)}${overflow(external, 'external')}`)
-  }
-
-  return `${domain} has broken links:
-
-${sections.join('\n\n')}
-
-For internal links, search my codebase for the URLs and fix them. For external links, tell me which ones are worth replacing vs removing.`
-}
-
 export function generateDnsPrompt(domain, dnsDetails) {
   const failingChecks = Object.entries(dnsDetails)
     .filter(([, d]) => !d.success)

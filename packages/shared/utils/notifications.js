@@ -8,7 +8,6 @@ export const checkDefaultNotifications = {
   'mixedcontent': 'daily',
   'pageanalysis': 'daily',
   'apidocs': 'daily',
-  'links': 'daily',
 }
 
 export const checkNameMap = {
@@ -21,7 +20,6 @@ export const checkNameMap = {
   'mixedcontent': 'Mixed Content',
   'pageanalysis': 'Page Analysis',
   'apidocs': 'Exposed API Docs',
-  'links': 'Broken Link',
   'custom': 'Custom Flow',
 }
 
@@ -36,7 +34,6 @@ export const getNotificationMessage = ({ type, details }) => {
     'mixedcontent': `Mixed content detected: ${details}`,
     'pageanalysis': `Page analysis issue: ${details}`,
     'apidocs': `API documentation exposed: ${details}`,
-    'links': `Broken link found: ${details}`,
     'custom': `Custom flow failed: ${details}`,
   }
 

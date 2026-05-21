@@ -10,7 +10,6 @@ const OverviewChart = ({ data = [], flows = [] }) => {
   const recentSSL = data.filter(d => d.check === 'ssl').sort(byDate)[0]
   const recentDns = data.filter(d => d.check === 'dns').sort(byDate)[0]
   const recentPageAnalysis = data.filter(d => d.check === 'pageanalysis').sort(byDate)[0]
-  const recentLinks = data.filter(d => d.check === 'links').sort(byDate)[0]
   const recentCustomChecks = data.filter(d => d.check === 'custom').sort(byDate)[0]
 
   const fuzzScore = calcScore(recentFuzz?.result?.details?.files?.length ?? 0, 20)
@@ -32,8 +31,6 @@ const OverviewChart = ({ data = [], flows = [] }) => {
     (pad.dirListingIssues?.length || 0)
   const pageSecurityScore = calcScore(pageSecurityIssues, 10)
 
-  const linkScore = recentLinks ? calcScore(recentLinks.result?.details?.length ?? 0, 20) : null
-
   const customScore = (flows.length > 0 && recentCustomChecks?.result?.length > 0)
     ? recentCustomChecks.result
       .map(r => r.result.status === 'success' ? 100 : 0)
@@ -52,9 +49,6 @@ const OverviewChart = ({ data = [], flows = [] }) => {
   }, {
     name: 'Page Security',
     Score: pageSecurityScore
-  }, linkScore !== null && {
-    name: 'Links',
-    Score: linkScore
   }, customScore !== null && {
     name: 'Custom Flows',
     Score: Math.round(customScore)

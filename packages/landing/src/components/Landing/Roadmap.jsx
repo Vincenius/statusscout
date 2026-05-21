@@ -80,7 +80,7 @@ export default function Roadmap({
 const defaultItems = [
   {
     title: "Security & Health Scanner",
-    description: "10 checks in one scan: SSL, security headers, exposed files, cookie security, exposed API docs, DNS records, mixed content, page security issues, and broken links. Free, no signup required.",
+    description: "9 checks in one scan: SSL, security headers, exposed files, cookie security, exposed API docs, DNS records, mixed content, and page security issues. Free, no signup required.",
     icon: <IconCheck size={18} color="green" />,
     completed: true,
   },

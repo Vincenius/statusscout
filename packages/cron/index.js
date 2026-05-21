@@ -197,14 +197,13 @@ cron.schedule('0 0 10 * * *', () => {
   }
 })
 
-// every 6 hours at :00:10 — extended
-cron.schedule('10 0 */6 * * *', () => tryRun('extended'))
+// every 6 hours at :00:10 — full
+cron.schedule('10 0 */6 * * *', () => tryRun('full'))
 
 // every 5 minutes at :00:20 — quick
 cron.schedule('20 */5 * * * *', () => tryRun('quick'))
 
 // run once immediately
-// tryRun('extended')
 cleanUp()
 // runNotifications()
 // runTrialCheck()

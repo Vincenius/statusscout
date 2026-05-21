@@ -6,7 +6,6 @@ export const getRecentChecks = (checks) => {
     fuzzCheck: latest(checks, 'fuzz'),
     headersCheck: latest(checks, 'headers'),
     sslCheck: latest(checks, 'ssl'),
-    linkCheck: latest(checks, 'links'),
     dnsCheck: latest(checks, 'dns'),
     cookieCheck: latest(checks, 'cookies'),
     mixedContentCheck: latest(checks, 'mixedcontent'),

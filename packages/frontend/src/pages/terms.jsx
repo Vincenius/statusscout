@@ -23,7 +23,7 @@ export default function TermsPage() {
 
         <Title order={2} mt="md" mb="sm">2. Services</Title>
         <Text mb="sm">
-          StatusScout is a SaaS platform that provides a complete overview of your website’s security, performance, and overall health. It helps you identify broken links, performance bottlenecks, and other issues that may negatively impact your website. We may update or modify the services at any time without prior notice.
+          StatusScout is a SaaS platform that provides a complete overview of your website’s security and overall health. It helps you identify security issues and other problems that may negatively impact your website. We may update or modify the services at any time without prior notice.
         </Text>
 
         <Title order={2} mt="md" mb="sm">3. Accounts</Title>

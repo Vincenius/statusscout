@@ -54,7 +54,7 @@ export const runHeaderCheck = async ({ uri, id, websiteId, createdAt, quickcheck
       versionDisclosure.push({ header: 'X-Powered-By', value: poweredByHeader })
     }
 
-    // HTTP → HTTPS redirect — only on extended/full/free to avoid extra latency on quick checks
+    // HTTP → HTTPS redirect — only on full/free to avoid extra latency on quick checks
     let httpsRedirect = null
     if (uri.startsWith('https://') && type !== 'quick') {
       const httpUri = uri.replace(/^https:\/\//, 'http://')

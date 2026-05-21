@@ -5,7 +5,6 @@ import { runFuzzCheck } from './checks/fuzz.js'
 import { runHeaderCheck } from './checks/headers.js'
 import { runSslCheck } from './checks/ssl.js'
 import { runCustomChecks } from './checks/custom.js'
-import { runBrokenLinkCheck } from './checks/links.js'
 import { runDnsCheck } from './checks/dns.js'
 import { runCookieCheck } from './checks/cookies.js'
 import { runMixedContentCheck } from './checks/mixedcontent.js'
@@ -15,7 +14,7 @@ import { ObjectId } from 'mongodb'
 import { runNotifications, runDailyNotification } from './notification.js'
 
 export const run = async ({ id, triggerName, type = 'quick', websiteId, quickcheckId, url }) => {
-  // type (of check) -> quick, extended, full
+  // type: quick | full | free
   try {
     const db = await connectDB()
     const [website] = !url && websiteId
@@ -37,7 +36,7 @@ export const run = async ({ id, triggerName, type = 'quick', websiteId, quickche
       () => runCookieCheck(baseParams),
     ]
 
-    if (type === 'extended' || type === 'full' || type === 'free') {
+    if (type === 'full' || type === 'free') {
       checks.push(
         () => runFuzzCheck(baseParams),
         () => runDnsCheck(baseParams),
@@ -47,15 +46,9 @@ export const run = async ({ id, triggerName, type = 'quick', websiteId, quickche
       )
     }
 
-    if (type === 'full' || type === 'extended') {
+    if (type === 'full') {
       checks.push(
         () => runCustomChecks(baseParams)
-      )
-    }
-
-    if (type === 'full' || type === 'free') {
-      checks.push(
-        () => runBrokenLinkCheck(baseParams)
       )
     }
 

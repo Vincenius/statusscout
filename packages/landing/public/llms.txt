@@ -6,9 +6,9 @@
 
 StatusScout runs scheduled checks on your websites at different intervals:
 
-- **Every 5 minutes**: Uptime + SSL
-- **Every 6 hours**: + Security headers + sensitive file probing + DNS
-- **Daily at 04:00**: + Broken link crawl
+- **Every 5 minutes** (`quick`): Uptime + SSL + security headers + cookies
+- **Every 6 hours** (`full`): All checks including fuzz, DNS, mixed content, page analysis, API docs, and custom flows
+- **Daily at 04:00** (`full`): Same as the 6-hour full scan
 - **On-demand**: Full scan triggered manually from the dashboard
 
 When a check detects a new issue, you receive an alert via your configured notification channel. A daily digest summarises all open issues from the last 24 hours.
@@ -26,7 +26,6 @@ When a check detects a new issue, you receive an alert via your configured notif
 | **Mixed content** | Detects HTTP resources loaded on HTTPS pages |
 | **Page analysis** | Checks for verbose error pages, missing SRI on CDN resources, POST forms without CSRF tokens, directory listings |
 | **API docs exposure** | Detects publicly accessible Swagger, OpenAPI, and GraphQL endpoints |
-| **Broken links** | Crawls the site and reports dead links |
 | **Custom flows** | User-defined Playwright test flows (signup, checkout, etc.) — get alerted when they fail |
 
 ## Alerts & Notifications
@@ -50,7 +49,6 @@ Requires: MongoDB + Redis. No external services needed unless you want email or 
 ## Key Facts
 
 - Open source — source code and architecture on [GitHub](https://github.com/Vincenius/statusscout)
-- Free public scan available without signup (uptime, SSL, headers, DNS, sensitive files, broken links)
+- Free public scan available without signup (uptime, SSL, headers, DNS, sensitive files, cookies, mixed content, page security, API docs)
 - Up to 5 monitored websites per account
 - `checks.createdAt` is stored as an ISO string, not a MongoDB Date
-- Lighthouse-based SEO/performance/a11y checks are **not** part of the current feature set

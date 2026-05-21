@@ -19,8 +19,6 @@
     "dotenv": "^17.2.0",
     "get-port": "^7.1.0",
     "ioredis": "^5.6.1",
-    "lighthouse": "^12.8.0",
-    "linkinator": "^6.1.4",
     "mongodb": "^6.17.0",
     "p-limit": "^6.2.0",
     "playwright": "1.55.0",

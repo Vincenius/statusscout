@@ -28,7 +28,6 @@ Every site you add gets scanned for a bunch of things:
 - **Mixed content:** detects HTTP resources loaded on HTTPS pages
 - **Page analysis:** SRI on external scripts, CSRF token presence, exposed stack traces, directory listings
 - **API exposure:** detects publicly accessible Swagger, OpenAPI, and GraphQL endpoints
-- **Broken links:** crawls your site and reports dead links
 
 The security checks are especially useful for AI-built apps. Things like exposed API docs or missing cookie flags are exactly what slips through when you've never had to think about it before.
 

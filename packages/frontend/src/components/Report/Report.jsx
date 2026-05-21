@@ -1,10 +1,9 @@
-import { Accordion, Badge, Blockquote, Box, Button, Card, Center, Code, Flex, Group, List, Modal, ScrollArea, SimpleGrid, Table, Text, ThemeIcon, Title, Tooltip } from '@mantine/core'
+import { Accordion, Badge, Blockquote, Box, Button, Card, Center, Code, Flex, List, SimpleGrid, Table, Text, ThemeIcon, Title, Tooltip } from '@mantine/core'
 import {
   SSLChart,
   HeaderChart,
   HeaderWarningsChart,
   FuzzChart,
-  BrokenLinksChart,
   LoadingChart,
   CustomFlowsChart,
   DnsChart,
@@ -27,50 +26,12 @@ import {
   generateHeadersPrompt,
   generateHeaderWarningsPrompt,
   generateFuzzPrompt,
-  generateLinksPrompt,
   generateDnsPrompt,
   generateCookiesPrompt,
   generateMixedContentPrompt,
   generatePageAnalysisPrompt,
   generateApiDocsPrompt,
 } from '@/utils/promptTemplates'
-
-const LinksTable = ({ items, updateIgnoreList, loading, ignoreAction }) => {
-  if (!items.length) {
-    return <Text fs="italic" ta="center" my="xl">No broken links found</Text>
-  }
-
-  return <Table striped withTableBorder>
-    <Table.Thead>
-      <Table.Tr>
-        <Table.Td>Status</Table.Td>
-        <Table.Td>Broken Link</Table.Td>
-        <Table.Td>Parent</Table.Td>
-        {/* <Table.Td>{ignoreAction === 'add' ? 'Ignore' : 'Unignore'}</Table.Td> */}
-      </Table.Tr>
-    </Table.Thead>
-    <Table.Tbody>
-      {items.map((item, index) => <Table.Tr key={`links-${index}`}>
-        <Table.Td w={70}><Badge color={item.status === 404 ? 'orange' : 'red'}>{item.status}</Badge></Table.Td>
-        <Table.Td><a href={item.url} target="_blank" rel="noopener noreferrer">{item.url}</a></Table.Td>
-        <Table.Td><a href={item.parent} target="_blank" rel="noopener noreferrer">{item.parent}</a></Table.Td>
-        {/* <Table.Td align="center">
-          <ActionIcon
-            variant="outline"
-            aria-label="Ignore Item"
-            onClick={() => updateIgnoreList({ item, type: 'links', action: ignoreAction })}
-            loading={loading === item.url}
-            disabled={loading && loading !== item.url}
-          >
-            {ignoreAction === 'add'
-              ? <IconBellOff style={{ width: '70%', height: '70%' }} stroke={1.5} />
-              : <IconBell style={{ width: '70%', height: '70%' }} stroke={1.5} />}
-          </ActionIcon>
-        </Table.Td> */}
-      </Table.Tr>)}
-    </Table.Tbody>
-  </Table>
-}
 
 function CopyPromptButton({ prompt }) {
   const [copied, setCopied] = useState(false)
@@ -103,7 +64,6 @@ function Report({ website, checks, status, isQuickCheck = false }) {
     fuzzCheck,
     headersCheck,
     sslCheck,
-    linkCheck,
     customChecks,
     dnsCheck,
     cookieCheck,
@@ -115,32 +75,10 @@ function Report({ website, checks, status, isQuickCheck = false }) {
   const { data: flows = [], isLoading: isLoadingFlows } = !isQuickCheck
     ? useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/flows?websiteId=${website.index}`)
     : { data: [], isLoading: false };
-  const [loading, setLoading] = useState(null)
-  const { ignore = [] } = website // todo
-  const updateIgnoreList = async ({ item, type, action }) => {
-    setLoading(item.url)
-
-    fetch(`${import.meta.env.VITE_API_URL}/v1/website/ignore`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ item: item.url, type, action }),
-    }).then(async res => {
-      mutate(`${import.meta.env.VITE_API_URL}/v1/website`)
-    }).finally(() => {
-      setLoading(null)
-    })
-  } // todo
-
   const customFlowLength = (status?.state === 'completed' || isLoadingFlows)
     ? customChecks.length
     : flows.length
 
-  const brokenLinks = linkCheck && linkCheck.result.details // .filter(link => !ignore.filter(i => i.type === 'links').map(i => i.item).includes(link.url))
-
-  const [showIgnored, setShowIgnored] = useState(false);
   const [expandHeaders, setExpandHeaders] = useState(false);
   const missingHeaders = headersCheck?.result?.details?.missingHeaders || [];
   const missingOptionalHeaders = headersCheck?.result?.details?.missingOptionalHeaders || [];
@@ -155,7 +93,6 @@ function Report({ website, checks, status, isQuickCheck = false }) {
   const headersRef = useRef(null);
   const headerWarningsRef = useRef(null);
   const fuzzRef = useRef(null);
-  const linksRef = useRef(null);
   const customFlowsRef = useRef(null);
   const dnsRef = useRef(null);
   const cookiesRef = useRef(null);
@@ -218,11 +155,6 @@ function Report({ website, checks, status, isQuickCheck = false }) {
             <Flex direction="column" align="center" onClick={() => scrollToRef(fuzzRef)} style={{ cursor: 'pointer' }}>
               {fuzzCheck && <FuzzChart status={fuzzCheck.result.status} files={fuzzCheck.result.details.files} />}
               {!fuzzCheck && <LoadingChart label="Sensitive Files" checkState={checkState} />}
-            </Flex>
-
-            <Flex direction="column" align="center" onClick={() => scrollToRef(linksRef)} style={{ cursor: 'pointer' }}>
-              {linkCheck && <BrokenLinksChart brokenLinks={brokenLinks} />}
-              {!linkCheck && <LoadingChart label="Broken Links" checkState={checkState} />}
             </Flex>
 
             <Flex direction="column" align="center" onClick={() => scrollToRef(dnsRef)} style={{ cursor: 'pointer' }}>
@@ -352,53 +284,6 @@ function Report({ website, checks, status, isQuickCheck = false }) {
             )}
             <CopyPromptButton prompt={generateFuzzPrompt(website.domain, exposedFiles)} />
           </>}
-        </Card.Section>
-
-        <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={linksRef}>
-          <Flex gap="xl" align="center" wrap="wrap" mb={linkCheck && linkCheck.result.details.length > 0 ? 'xl' : 0}>
-            <Box style={{ flexShrink: 0 }}>
-              {linkCheck
-                ? <BrokenLinksChart brokenLinks={brokenLinks} size="lg" showLabel={false} />
-                : <LoadingChart label="Broken Links" size="lg" checkState={checkState} showLabel={false} />}
-            </Box>
-            <Box style={{ flex: 1, minWidth: 220 }}>
-              <Title order={3} mb="xs">Broken Links</Title>
-              <Text size="sm" c="dimmed">Fixing broken links improves user experience, enhances SEO rankings, and maintains website credibility by ensuring all links lead to valid destinations.</Text>
-              {linkCheck && linkCheck.result.details.filter(item => !ignore.map(i => i.item).includes(item.url)).length === 0 && <Text size="sm" mt="xs" c="green">No broken links were found.</Text>}
-              {isQuickCheck && <Text size="sm" mt="xs" c="dimmed" fs="italic">Quick check scan only checks up to 200 links. Sign-up to check up to 4000 links.</Text>}
-            </Box>
-          </Flex>
-
-          {linkCheck && linkCheck.result.details.length > 0 &&
-            <List>
-              <LinksTable
-                items={linkCheck.result.details.filter(item => !ignore.map(i => i.item).includes(item.url))}
-                updateIgnoreList={updateIgnoreList}
-                loading={loading}
-                ignoreAction="add"
-              />
-
-              {ignore.length > 0 &&
-                <>
-                  {!showIgnored && <Text mt="sm">
-                    <a size="sm" mt="sm" variant="transparent" href="#show-ignored" onClick={e => { e.preventDefault(); setShowIgnored(true) }}>
-                      Show {ignore.length} filtered {ignore.length === 1 ? 'item' : 'items'}
-                    </a>
-                  </Text>}
-                  {showIgnored && <>
-                    <Text mt="sm" mb="xs" fw="bold">Filtered Items</Text>
-                    <LinksTable
-                      items={ignore.map(i => linkCheck.result.details.find(item => item.url === i.item))}
-                      updateIgnoreList={updateIgnoreList}
-                      loading={loading}
-                      ignoreAction="remove"
-                    />
-                  </>}
-                </>
-              }
-              <CopyPromptButton prompt={generateLinksPrompt(website.domain, linkCheck.result.details)} />
-            </List>
-          }
         </Card.Section>
 
         <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={dnsRef}>

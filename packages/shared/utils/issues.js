@@ -86,10 +86,9 @@ export const getIssueHistory = (checks) => {
     }
   })
   const apiDocsIssues = getIssues({ checks, type: 'apidocs', getCurrIssues: curr => (curr?.result?.details?.exposed || []).map(path => `API documentation exposed: ${path}`) })
-  const linkIssues = getIssues({ checks, type: 'links', getCurrIssues: curr => (curr?.result?.details || []).map(i => `${i.parent} -> ${i.url}`) })
   const customIssues = getCustomIssues({ checks })
 
-  const allIssues = [...sslIssues, ...headerIssues, ...cookieIssues, ...fuzzIssues, ...dnsIssues, ...subdomainIssues, ...mixedContentIssues, ...pageAnalysisIssues, ...apiDocsIssues, ...linkIssues, ...customIssues]
+  const allIssues = [...sslIssues, ...headerIssues, ...cookieIssues, ...fuzzIssues, ...dnsIssues, ...subdomainIssues, ...mixedContentIssues, ...pageAnalysisIssues, ...apiDocsIssues, ...customIssues]
   const checkDates = checks.map(c => c.createdAt)
   const uniqueDates = [...new Set(checkDates)].sort((a, b) => a - b)
 

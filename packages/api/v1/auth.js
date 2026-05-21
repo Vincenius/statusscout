@@ -1,7 +1,7 @@
 import fastifyPassport from '@fastify/passport';
-import CryptoJS from 'crypto-js'
 import { v4 as uuidv4 } from 'uuid';
 import { connectDB } from '../db.js'
+import { hashPassword } from '../utils/password.js'
 import { sendEmail, getHtml } from '../utils/email.js';
 import confirmAccountTemplate from '../utils/templates/confirmAccount.js';
 import resetPasswordTemplate from '../utils/templates/resetPassword.js';
@@ -42,7 +42,7 @@ export default async function authRoutes(fastify, opts) {
         return { error: 'Email already registered' };
       }
 
-      const passHash = CryptoJS.HmacSHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+      const passHash = await hashPassword(password)
       const token = uuidv4()
       const subscription = process.env.STRIPE_SECRET_KEY ? {
         plan: 'trial',
@@ -137,7 +137,7 @@ export default async function authRoutes(fastify, opts) {
         return { error: true };
       }
 
-      const hashedPassword = CryptoJS.HmacSHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+      const hashedPassword = await hashPassword(password)
       await db.collection('users').updateOne({ resetPasswordToken: token }, {
         $set: {
           password: hashedPassword,

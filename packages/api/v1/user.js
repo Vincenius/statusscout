@@ -1,6 +1,6 @@
 import fastifyPassport from '@fastify/passport';
-import CryptoJS from 'crypto-js'
 import { v4 as uuidv4 } from 'uuid';
+import { hashPassword, verifyPassword } from '../utils/password.js'
 import { mapUser } from '../utils/user.js';
 import { connectDB } from '../db.js';
 import confirmChannel from '../utils/templates/confirmChannel.js';
@@ -249,15 +249,13 @@ export default async function userRoutes(fastify, opts) {
 
         const user = request.user
 
-        const hashedCurrentPassword = CryptoJS.HmacSHA256(currentPassword, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
-        const legacyCurrentHash = CryptoJS.SHA256(currentPassword).toString(CryptoJS.enc.Hex)
-        const passwordMatches = hashedCurrentPassword === user.password || legacyCurrentHash === user.password
+        const { match } = await verifyPassword(currentPassword, user.password)
 
-        if (!passwordMatches) {
+        if (!match) {
           return reply.code(403).send({ error: 'Current password is incorrect' })
         } else {
           const db = await connectDB()
-          const hashedNewPassword = CryptoJS.HmacSHA256(newPassword, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
+          const hashedNewPassword = await hashPassword(newPassword)
           await db.collection('users').updateOne({ _id: user._id }, {
             $set: { password: hashedNewPassword }
           }, { returnDocument: 'after' })

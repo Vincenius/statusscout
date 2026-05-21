@@ -6,8 +6,8 @@ import fastifySecureSession from '@fastify/secure-session';
 import { Strategy as LocalStrategy } from 'passport-local';
 import fastifyPassport from '@fastify/passport';
 import { ObjectId } from 'mongodb';
-import CryptoJS from 'crypto-js'
 import { disconnectDB, connectDB } from './db.js'
+import { verifyPassword } from './utils/password.js'
 
 import authRoutes from './v1/auth.js'
 import flowsRoutes from './v1/flows.js'
@@ -54,19 +54,19 @@ fastifyPassport.use(
           return done(null, false, { message: 'Invalid login' });
         }
 
-        const newHash = CryptoJS.HmacSHA256(password, process.env.PASSWORD_HASH_SECRET).toString(CryptoJS.enc.Hex)
-        const legacyHash = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex)
+        const { match, migratedHash } = await verifyPassword(password, user.password)
 
-        if (user.password === newHash) {
-          return done(null, user);
-        } else if (user.password === legacyHash) {
-          // Migrate legacy unsalted hash to HmacSHA256 transparently
-          const db2 = await connectDB();
-          await db2.collection('users').updateOne({ _id: user._id }, { $set: { password: newHash } });
-          return done(null, { ...user, password: newHash });
-        } else {
+        if (!match) {
           return done(null, false, { message: 'Invalid login' });
         }
+
+        if (migratedHash) {
+          // Transparently migrate legacy hash to bcrypt on first login
+          await db.collection('users').updateOne({ _id: user._id }, { $set: { password: migratedHash } });
+          return done(null, { ...user, password: migratedHash });
+        }
+
+        return done(null, user);
       } catch (err) {
         return done(err);
       }

@@ -96,11 +96,11 @@ export function HeaderWarningsChart({ details, size = 'md', showLabel = true }) 
         size={s.ring}
         roundCaps
         thickness={s.thickness}
-        sections={[{ value: 100, color: warningCount === 0 ? 'green' : 'orange' }]}
+        sections={[{ value: 100, color: warningCount === 0 ? 'green' : 'yellow' }]}
         label={
           <Center>
             {warningCount === 0 && <IconCheck size={s.icon} stroke={3} color="green" />}
-            {warningCount > 0 && <Text c="orange" fw="bold" size={s.text}>{warningCount}</Text>}
+            {warningCount > 0 && <Text c="yellow" fw="bold" size={s.text}>{warningCount}</Text>}
           </Center>
         }
       />

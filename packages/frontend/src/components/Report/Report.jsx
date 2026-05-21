@@ -18,7 +18,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import { Link } from 'react-router-dom'
 import { STEP_TYPES } from '@/utils/customFlows';
-import { IconCheck, IconX, IconSparkles, IconEye, IconCopy, IconBrandX, IconBrandLinkedin, IconLink, IconCode } from '@tabler/icons-react'
+import { IconCheck, IconX, IconSparkles, IconEye, IconCopy, IconBrandX, IconBrandBluesky, IconMail, IconLink, IconCode, IconLock, IconBook2, IconBug, IconArrowNarrowRight, IconWorld, IconFileAlert, IconCookie, IconArrowsExchange, IconShield, IconServer, IconChevronRight } from '@tabler/icons-react'
 import { useAuthSWR } from '@/utils/useAuthSWR'
 import { dnsChecksInfo } from '@statusscout/shared'
 import { computeSecurityScore } from '@statusscout/shared'
@@ -68,12 +68,16 @@ function CopyPromptButton({ prompt }) {
   )
 }
 
-function BadgeModal({ opened, onClose, hostname }) {
+function BadgeModal({ opened, onClose, hostname, isQuickCheck, quickcheckId }) {
   const [copiedMd, setCopiedMd] = useState(false)
   const [copiedHtml, setCopiedHtml] = useState(false)
 
-  const badgeUrl = `${import.meta.env.VITE_API_URL}/v1/badge/${hostname}`
-  const reportUrl = `${window.location.origin}/report/${hostname}`
+  const badgeUrl = isQuickCheck && quickcheckId
+    ? `${import.meta.env.VITE_API_URL}/v1/badge/quickcheck/${quickcheckId}`
+    : `${import.meta.env.VITE_API_URL}/v1/badge/${hostname}`
+  const reportUrl = isQuickCheck && quickcheckId
+    ? `${window.location.origin}/quickcheck?id=${quickcheckId}`
+    : `${window.location.origin}/report/${hostname}`
 
   const mdSnippet = `[![StatusScout Security Grade](${badgeUrl})](${reportUrl})`
   const htmlSnippet = `<a href="${reportUrl}">\n  <img src="${badgeUrl}" alt="StatusScout Security Grade" />\n</a>`
@@ -112,36 +116,44 @@ function BadgeModal({ opened, onClose, hostname }) {
           <Code block style={{ fontSize: 12 }}>{htmlSnippet}</Code>
         </Box>
 
-        <Text size="xs" c="dimmed">Badge updates hourly. Grade reflects your latest full scan.</Text>
+        <Text size="xs" c="dimmed">{isQuickCheck ? 'Badge reflects this scan. Run a new quickcheck to update it.' : 'Badge updates automatically after each full scan.'}</Text>
       </Stack>
     </Modal>
   )
 }
 
-function ShareActions({ securityScore, website }) {
+function ShareActions({ securityScore, website, isQuickCheck, quickcheckId }) {
   const [copiedLink, setCopiedLink] = useState(false)
   const [badgeOpened, { open: openBadge, close: closeBadge }] = useDisclosure(false)
 
   let hostname = ''
   try { hostname = new URL(website?.domain || '').hostname } catch { hostname = '' }
 
-  const reportUrl = `${window.location.origin}/report/${hostname}`
+  const isPublic = isQuickCheck || website?.publicReport
+  const reportUrl = isQuickCheck && quickcheckId
+    ? `${window.location.origin}/quickcheck?id=${quickcheckId}`
+    : `${window.location.origin}/report/${hostname}`
 
   const totalIssues = securityScore.issues.critical + securityScore.issues.high + securityScore.issues.medium + securityScore.issues.low
+  const issueParts = [
+    securityScore.issues.critical > 0 && `${securityScore.issues.critical} critical`,
+    securityScore.issues.high > 0 && `${securityScore.issues.high} high`,
+    securityScore.issues.medium > 0 && `${securityScore.issues.medium} medium`,
+    securityScore.issues.low > 0 && `${securityScore.issues.low} low`,
+  ].filter(Boolean)
   const issueText = totalIssues === 0
     ? 'No issues found 🎉'
-    : [
-      securityScore.issues.critical > 0 && `${securityScore.issues.critical} critical`,
-      securityScore.issues.high > 0 && `${securityScore.issues.high} high`,
-    ].filter(Boolean).join(' / ') + ' issues found'
+    : `${totalIssues} issues found (${issueParts.join(', ')})`
 
-  const tweetText = encodeURIComponent(
-    `My site ${hostname} just scored ${securityScore.score}/100 (Grade ${securityScore.grade}) on a security scan by @StatusScout.\n\n${issueText}\n\nScan yours free: https://statusscout.dev`
-  )
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}`
+  const shareLink = isPublic ? reportUrl : 'https://statusscout.dev'
+  const issuesSummary = totalIssues === 0
+    ? 'No security issues found — clean bill of health 🎉'
+    : issueText
+  const shareBlurb = `I ran a free security scan on https://statusscout.dev for ${hostname}\n\nGrade ${securityScore.grade} · ${securityScore.score}/100\n${issuesSummary}\n\nHow does your site score?`
 
-  const linkedinShareUrl = encodeURIComponent(website?.publicReport ? reportUrl : 'https://statusscout.dev')
-  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${linkedinShareUrl}`
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareBlurb)}`
+  const bskyUrl = `https://bsky.app/intent/compose?text=${encodeURIComponent(shareBlurb)}`
+  const emailUrl = `mailto:?subject=${encodeURIComponent(`Security report: ${hostname} scored ${securityScore.score}/100`)}&body=${encodeURIComponent(`${shareBlurb}${isPublic ? `\n\nFull report: ${reportUrl}` : ''}`)}`
 
   const copyLink = () => {
     navigator.clipboard.writeText(reportUrl)
@@ -168,21 +180,33 @@ function ShareActions({ securityScore, website }) {
             </ActionIcon>
           </Tooltip>
 
-          <Tooltip label="Share on LinkedIn" withArrow>
+          <Tooltip label="Share on Bluesky" withArrow>
             <ActionIcon
               variant="outline"
               size="lg"
               color="gray"
               component="a"
-              href={linkedinUrl}
+              href={bskyUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <IconBrandLinkedin size={16} />
+              <IconBrandBluesky size={16} />
             </ActionIcon>
           </Tooltip>
 
-          {website?.publicReport && (
+          <Tooltip label="Share via email" withArrow>
+            <ActionIcon
+              variant="outline"
+              size="lg"
+              color="gray"
+              component="a"
+              href={emailUrl}
+            >
+              <IconMail size={16} />
+            </ActionIcon>
+          </Tooltip>
+
+          {isPublic && (
             <Tooltip label={copiedLink ? 'Copied!' : 'Copy report link'} withArrow>
               <ActionIcon
                 variant="outline"
@@ -195,7 +219,7 @@ function ShareActions({ securityScore, website }) {
             </Tooltip>
           )}
 
-          {website?.publicReport && (
+          {isPublic && (
             <Tooltip label="Get embed badge" withArrow>
               <ActionIcon
                 variant="outline"
@@ -210,7 +234,7 @@ function ShareActions({ securityScore, website }) {
         </Group>
       </Box>
 
-      <BadgeModal opened={badgeOpened} onClose={closeBadge} hostname={hostname} />
+      <BadgeModal opened={badgeOpened} onClose={closeBadge} hostname={hostname} isQuickCheck={isQuickCheck} quickcheckId={quickcheckId} />
     </>
   )
 }
@@ -268,7 +292,7 @@ function ScanProgressScreen({ sslCheck, headersCheck, cookieCheck, fuzzCheck, dn
                   </Box>
                   <Text size="sm" style={{ flex: 1 }} c={result ? undefined : 'dimmed'}>{label}</Text>
                   {result ? (
-                    <Badge size="xs" color={result.result.status === 'success' ? 'green' : 'orange'} variant="light">
+                    <Badge size="xs" color={result.result.status === 'success' ? 'green' : 'yellow'} variant="light">
                       {result.result.status === 'success' ? 'OK' : 'Issues found'}
                     </Badge>
                   ) : (
@@ -290,7 +314,7 @@ function ScanProgressScreen({ sslCheck, headersCheck, cookieCheck, fuzzCheck, dn
   )
 }
 
-function Report({ website, checks, status, isQuickCheck = false, isPublicReport = false }) {
+function Report({ website, checks, status, isQuickCheck = false, isPublicReport = false, quickcheckId }) {
   const {
     fuzzCheck,
     headersCheck,
@@ -358,6 +382,139 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
   const securityScore = checkState === 'completed'
     ? computeSecurityScore({ sslCheck, fuzzCheck, headersCheck, dnsCheck, cookieCheck, mixedContentCheck, pageAnalysisCheck, apiDocsCheck, exposedFiles, missingHeaders })
     : null
+
+  const issueList = useMemo(() => {
+    if (!securityScore) return []
+    const items = []
+
+    if (sslCheck && sslCheck.result.status !== 'success')
+      items.push({
+        severity: 'critical',
+        Icon: IconLock,
+        title: 'SSL Certificate Invalid or Expired',
+        description: 'Visitors see a browser warning and their connection is not encrypted.',
+        refKey: 'ssl',
+      })
+
+    const exposedApiCount = apiDocsCheck?.result.details.exposed.length || 0
+    if (exposedApiCount > 0)
+      items.push({
+        severity: 'high',
+        Icon: IconBook2,
+        title: `${exposedApiCount} API Doc${exposedApiCount > 1 ? 's' : ''} Publicly Accessible`,
+        description: 'Swagger, GraphQL, or OpenAPI specs are open to anyone — a detailed blueprint of your API for attackers.',
+        refKey: 'apiDocs',
+      })
+
+    if (pageAnalysisCheck?.result.details.verboseErrors)
+      items.push({
+        severity: 'high',
+        Icon: IconBug,
+        title: 'Server Errors Expose Internal Details',
+        description: 'Unhandled errors reveal stack traces and file paths — a roadmap for anyone probing your server.',
+        refKey: 'pageAnalysis',
+      })
+
+    if (headersCheck?.result.details.httpsRedirect &&
+      !headersCheck.result.details.httpsRedirect.redirects &&
+      !headersCheck.result.details.httpsRedirect.connectionFailed)
+      items.push({
+        severity: 'high',
+        Icon: IconArrowNarrowRight,
+        title: 'HTTP Not Redirecting to HTTPS',
+        description: 'Visitors who type your domain without https:// connect insecurely and are never redirected.',
+        refKey: 'headerWarnings',
+      })
+
+    if (headersCheck?.result.details.corsWildcard)
+      items.push({
+        severity: 'high',
+        Icon: IconWorld,
+        title: 'Open CORS Policy',
+        description: 'Any website can read responses from your server, potentially exposing authenticated user data.',
+        refKey: 'headerWarnings',
+      })
+
+    if (exposedFiles.length > 0)
+      items.push({
+        severity: 'medium',
+        Icon: IconFileAlert,
+        title: `${exposedFiles.length} Sensitive File${exposedFiles.length > 1 ? 's' : ''} Exposed`,
+        description: 'Publicly reachable files may contain credentials, configs, or backups.',
+        refKey: 'fuzz',
+      })
+
+    const versionDisclosures = headersCheck?.result.details.versionDisclosure?.length || 0
+    if (versionDisclosures > 0)
+      items.push({
+        severity: 'medium',
+        Icon: IconEye,
+        title: `Server Version Revealed in ${versionDisclosures > 1 ? `${versionDisclosures} ` : ''}Response Header${versionDisclosures > 1 ? 's' : ''}`,
+        description: 'Advertising your software versions makes it trivial to match against known vulnerabilities.',
+        refKey: 'headerWarnings',
+      })
+
+    const cookieIssueCount = cookieCheck?.result.details.issues.length || 0
+    if (cookieIssueCount > 0)
+      items.push({
+        severity: 'medium',
+        Icon: IconCookie,
+        title: `${cookieIssueCount} Cookie${cookieIssueCount > 1 ? 's' : ''} Missing Security Flags`,
+        description: 'Cookies without HttpOnly, Secure, or SameSite can be stolen via XSS or sent over plain HTTP.',
+        refKey: 'cookies',
+      })
+
+    const mixedContentCount = mixedContentCheck?.result.details.issues.length || 0
+    if (mixedContentCount > 0 && !mixedContentCheck?.result.details.skipped)
+      items.push({
+        severity: 'medium',
+        Icon: IconArrowsExchange,
+        title: `${mixedContentCount} Mixed Content Resource${mixedContentCount > 1 ? 's' : ''}`,
+        description: 'HTTP resources on your HTTPS page can be intercepted and modified; browsers may block them entirely.',
+        refKey: 'mixedContent',
+      })
+
+    if (missingHeaders.length > 0)
+      items.push({
+        severity: 'low',
+        Icon: IconShield,
+        title: `${missingHeaders.length} Security Header${missingHeaders.length > 1 ? 's' : ''} Not Set`,
+        description: 'Headers that defend against XSS, clickjacking, and content injection are absent.',
+        refKey: 'headers',
+      })
+
+    if (dnsCheck) {
+      const dnsIssueCount = Object.values(dnsCheck.result.details).filter(d => !d.success).length
+      if (dnsIssueCount > 0)
+        items.push({
+          severity: 'low',
+          Icon: IconServer,
+          title: `${dnsIssueCount} DNS Record${dnsIssueCount > 1 ? 's' : ''} Missing or Misconfigured`,
+          description: 'Gaps in DNS records can affect email delivery or leave your domain open to spoofing.',
+          refKey: 'dns',
+        })
+    }
+
+    const sriCount = pageAnalysisCheck?.result.details.sriIssues?.length || 0
+    const csrfCount = pageAnalysisCheck?.result.details.csrfIssues?.length || 0
+    const dirCount = pageAnalysisCheck?.result.details.dirListingIssues?.length || 0
+    if (sriCount + csrfCount + dirCount > 0) {
+      const parts = [
+        sriCount > 0 && `${sriCount} resource${sriCount > 1 ? 's' : ''} without SRI`,
+        csrfCount > 0 && `${csrfCount} unprotected form${csrfCount > 1 ? 's' : ''}`,
+        dirCount > 0 && `${dirCount} open director${dirCount > 1 ? 'ies' : 'y'}`,
+      ].filter(Boolean)
+      items.push({
+        severity: 'low',
+        Icon: IconCode,
+        title: 'Page Security Weaknesses',
+        description: `Found ${parts.join(', ')} — these can expose your site to supply-chain or data-theft attacks.`,
+        refKey: 'pageAnalysis',
+      })
+    }
+
+    return items
+  }, [securityScore, sslCheck, apiDocsCheck, pageAnalysisCheck, headersCheck, cookieCheck, mixedContentCheck, dnsCheck, exposedFiles, missingHeaders])
 
   const scrollToRef = (ref) => {
     ref.current?.scrollIntoView({ behavior: 'smooth' });
@@ -441,7 +598,58 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
                 </Flex>)
               }
 
-              <ShareActions securityScore={securityScore} website={website} />
+              <ShareActions securityScore={securityScore} website={website} isQuickCheck={isQuickCheck} quickcheckId={quickcheckId} />
+            </Stack>
+          </Card.Section>
+        )}
+
+        {securityScore && issueList.length > 0 && (
+          <Card.Section py="xl" px={{ base: "md", md: "xl" }} withBorder>
+            <Title order={3} fw={600} mb="md">What to Fix</Title>
+            <Stack gap="xs">
+              {issueList.map((issue, i) => {
+                const severityColor = { critical: 'red', high: 'orange', medium: 'yellow', low: 'blue' }[issue.severity]
+                const isFilled = issue.severity === 'critical' || issue.severity === 'high'
+                const borderShade = isFilled ? 6 : 4
+                const refMap = { ssl: sslRef, fuzz: fuzzRef, dns: dnsRef, headers: headersRef, headerWarnings: headerWarningsRef, cookies: cookiesRef, mixedContent: mixedContentRef, pageAnalysis: pageAnalysisRef, apiDocs: apiDocsRef }
+                return (
+                  <Box
+                    key={i}
+                    onClick={() => scrollToRef(refMap[issue.refKey])}
+                    style={{
+                      cursor: 'pointer',
+                      borderLeft: `3px solid var(--mantine-color-${severityColor}-${borderShade})`,
+                      borderRadius: '0 8px 8px 0',
+                      padding: '10px 14px',
+                      backgroundColor: `var(--mantine-color-${severityColor}-light)`,
+                    }}
+                  >
+                    <Group gap="sm" wrap="nowrap" align="flex-start">
+                      <Box pt={2} style={{ flexShrink: 0 }}>
+                        <issue.Icon size={16} color={`var(--mantine-color-${severityColor}-${borderShade})`} />
+                      </Box>
+                      <Box style={{ flex: 1, minWidth: 0 }}>
+                        <Group gap="xs" mb={2} wrap="nowrap">
+                          <Text size="sm" fw={600} style={{ flex: 1 }}>{issue.title}</Text>
+                          <Badge
+                            size="xs"
+                            color={severityColor}
+                            variant={isFilled ? 'filled' : 'light'}
+                            radius="sm"
+                            style={{ flexShrink: 0 }}
+                          >
+                            {issue.severity}
+                          </Badge>
+                        </Group>
+                        <Text size="xs" c="dimmed" lh={1.4}>{issue.description}</Text>
+                      </Box>
+                      <Box pt={3} style={{ flexShrink: 0 }}>
+                        <IconChevronRight size={14} color={`var(--mantine-color-${severityColor}-${borderShade})`} />
+                      </Box>
+                    </Group>
+                  </Box>
+                )
+              })}
             </Stack>
           </Card.Section>
         )}
@@ -690,7 +898,7 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
           </Flex>
 
           {headersCheck?.result?.details?.versionDisclosure?.length > 0 && (
-            <Blockquote color="orange" p="md" my="md">
+            <Blockquote color="yellow" p="md" my="md">
               <Text fw="bold" mb="xs">Technology version disclosure</Text>
               <Text size="sm" mb="sm">The following response headers reveal your server software or framework version, giving attackers a ready-made target list:</Text>
               <Table size="sm" mb="sm" withTableBorder>
@@ -710,14 +918,14 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
           {headersCheck?.result?.details?.httpsRedirect &&
             !headersCheck.result.details.httpsRedirect.redirects &&
             !headersCheck.result.details.httpsRedirect.connectionFailed && (
-              <Blockquote color="orange" p="md" my="md">
+              <Blockquote color="yellow" p="md" my="md">
                 <Text fw="bold" mb="xs">HTTP not redirecting to HTTPS</Text>
                 <Text size="sm">Your site is reachable over plain HTTP without being redirected to HTTPS. Users typing your domain without <code>https://</code> will connect insecurely. Add a permanent 301 redirect in your server or hosting config.</Text>
               </Blockquote>
             )}
 
           {headersCheck?.result?.details?.corsWildcard && (
-            <Blockquote color="orange" p="md" my="md">
+            <Blockquote color="yellow" p="md" my="md">
               <Text fw="bold" mb="xs">CORS wildcard detected (<code>Access-Control-Allow-Origin: *</code>)</Text>
               <Text size="sm">Your server allows any origin to read its responses. This is safe for fully public APIs, but dangerous if your endpoints handle authenticated data or cookies — it lets any website make requests to your API on behalf of your users.</Text>
             </Blockquote>
@@ -806,7 +1014,7 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
             </Box>
             <Box style={{ flex: 1, minWidth: 220 }}>
               <Title order={3} mb="xs">Page Security</Title>
-              <Text size="sm" c="dimmed">Analyses the page HTML for common issues AI-generated apps leave behind: verbose error pages, CDN resources without Subresource Integrity, POST forms without CSRF protection, and server-side directory listings.</Text>
+              <Text size="sm" c="dimmed">Analyses the page HTML for common issues: verbose error pages, CDN resources without Subresource Integrity, POST forms without CSRF protection, and server-side directory listings.</Text>
               {pageAnalysisCheck && !hasPageIssues && <Text size="sm" mt="xs" c="green">No page security issues found.</Text>}
             </Box>
           </Flex>

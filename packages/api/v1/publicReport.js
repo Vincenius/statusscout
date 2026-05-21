@@ -11,8 +11,8 @@ const GRADE_COLORS = {
 
 function buildBadgeSvg(rightText, rightColor) {
   const leftText = 'StatusScout'
-  const leftWidth = 100
-  const rightWidth = 100
+  const leftWidth = 80
+  const rightWidth = 120
   const totalWidth = leftWidth + rightWidth
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="20" role="img" aria-label="${leftText}: ${rightText}">
@@ -90,6 +90,56 @@ export default async function publicReportRoutes(fastify, opts) {
     } catch (e) {
       console.error(e)
       reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
+
+  fastify.get('/badge/quickcheck/:id', { config: { auth: false } }, async (request, reply) => {
+    reply.header('Content-Type', 'image/svg+xml')
+    reply.header('Cache-Control', 'public, max-age=3600')
+
+    try {
+      const { id } = request.params
+      const db = await connectDB()
+
+      const checkTypes = ['ssl', 'headers', 'fuzz', 'dns', 'cookies', 'mixedcontent', 'pageanalysis', 'apidocs']
+      const checks = await db.collection('checks')
+        .find({ quickcheckId: id, check: { $in: checkTypes } })
+        .toArray()
+
+      if (!checks.length) {
+        return buildBadgeSvg('unknown', '#9e9e9e')
+      }
+
+      const latestByType = {}
+      for (const check of checks) {
+        if (!latestByType[check.check] || check.createdAt > latestByType[check.check].createdAt) {
+          latestByType[check.check] = check
+        }
+      }
+
+      const getCheck = (type) => latestByType[type] || null
+      const sslCheck = getCheck('ssl')
+      const fuzzCheck = getCheck('fuzz')
+      const headersCheck = getCheck('headers')
+      const dnsCheck = getCheck('dns')
+      const cookieCheck = getCheck('cookies')
+      const mixedContentCheck = getCheck('mixedcontent')
+      const pageAnalysisCheck = getCheck('pageanalysis')
+      const apiDocsCheck = getCheck('apidocs')
+      const exposedFiles = fuzzCheck?.result?.details?.files || []
+      const missingHeaders = headersCheck?.result?.details?.missingHeaders || []
+
+      const { score, grade } = computeSecurityScore({
+        sslCheck, fuzzCheck, headersCheck, dnsCheck, cookieCheck,
+        mixedContentCheck, pageAnalysisCheck, apiDocsCheck,
+        exposedFiles, missingHeaders,
+      })
+
+      const color = GRADE_COLORS[grade] || '#555'
+      return buildBadgeSvg(`Grade ${grade} · ${score}/100`, color)
+    } catch (e) {
+      console.error(e)
+      return buildBadgeSvg('error', '#9e9e9e')
     }
   })
 

@@ -84,30 +84,15 @@ async function runNotifications() {
 async function cleanUp() {
   try {
     console.log('run cleanup')
-    const weekAgo = new Date();
     const monthAgo = new Date()
-    weekAgo.setHours(0, 0, 0, 0)
-    weekAgo.setDate(weekAgo.getDate() - 7)
-
     monthAgo.setHours(0, 0, 0, 0)
     monthAgo.setMonth(monthAgo.getMonth() - 1)
 
     const db = await connectDB()
-    const quickchecks = await db.collection('quickchecks')
-      .find({ createdAt: { $lte: weekAgo } })
-      .toArray();
-
-    for (const quickcheck of quickchecks) {
-      await Promise.all([
-        db.collection('checks').deleteMany({ quickcheckId: quickcheck.quickcheckId }),
-        db.collection('quickchecks').deleteOne({ _id: quickcheck._id })
-      ])
-    }
-
     const oldChecks = await db.collection('checks')
       .deleteMany({ createdAt: { $lte: monthAgo.toISOString() } })
 
-    console.log('deleted', quickchecks.length, 'quickchecks and', oldChecks.deletedCount, 'old checks')
+    console.log('deleted', oldChecks.deletedCount, 'old checks')
   } catch (e) {
     console.error(e)
   }

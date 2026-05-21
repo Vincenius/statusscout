@@ -79,7 +79,7 @@ function QuickCheck() {
           <Card withBorder shadow="md" maw="600px" mx="auto" p="lg">
             <Title order={2} fw={500} mb="md">Couldn't find this Quickcheck.</Title>
             <Blockquote p="sm" mb="lg">
-              It may have been removed. Quickcheck results are automatically deleted after seven days.
+              This quickcheck could not be found.
             </Blockquote>
 
             <Button fullWidth component={Link} to="/" c="#fff">
@@ -102,6 +102,7 @@ function QuickCheck() {
             checks={checks}
             status={result}
             isQuickCheck={true}
+            quickcheckId={quickcheckId}
           />
 
           <Card withBorder p="md" mt="xl" radius="md">

@@ -1,4 +1,4 @@
-import { Text, Flex, Burger, AppShell, NavLink, Box, LoadingOverlay, Loader, ActionIcon, Menu, ScrollArea, Blockquote, Button } from '@mantine/core'
+import { Text, Flex, Burger, AppShell, NavLink, Box, LoadingOverlay, Loader, ActionIcon, Menu, ScrollArea, Blockquote, Button, Alert } from '@mantine/core'
 import { Helmet } from 'react-helmet-async';
 import { useDisclosure } from '@mantine/hooks';
 import { IconAppWindow, IconCirclePlus, IconDashboard, IconHeartbeat, IconLogout, IconSettings } from '@tabler/icons-react';
@@ -25,7 +25,7 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
     ? useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/website`)
     : { data: [], error: null, isLoading: false };
 
-  const menuEnabled = user.confirmed && websites.length > 0;
+  const menuEnabled = websites.length > 0;
   const expiresAt = new Date(user?.subscription?.expiresAt);
   const now = new Date();
   const hasStripe = Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -129,10 +129,7 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
   }, [navigate]);
 
   useEffect(() => {
-    if (user.email && !user.confirmed && window.location.pathname !== '/confirm') {
-      navigate('/confirm');
-    }
-    if (user.email && user.confirmed && !isLoadingWebsite && websites.length === 0 && window.location.pathname !== '/onboarding') {
+    if (user.email && !isLoadingWebsite && websites.length === 0 && window.location.pathname !== '/onboarding') {
       navigate('/onboarding');
     }
   }, [user, websites, isLoadingWebsite])
@@ -299,7 +296,14 @@ const Layout = ({ children, title, isPublicRoute, redirectIfAuth, logoLink }) =>
       <AppShell.Main>
         <Box>
           {(isLoadingUser || isLoadingWebsite) && <LoadingOverlay />}
-          {(!isLoadingUser && !isLoadingWebsite) && children}
+          {(!isLoadingUser && !isLoadingWebsite) && <>
+            {!isPublicRoute && user.email && !user.confirmed && (
+              <Alert color="yellow" mb="md">
+                Please confirm your email address to receive notifications. Check your inbox for a confirmation link.
+              </Alert>
+            )}
+            {children}
+          </>}
         </Box>
       </AppShell.Main>
     </AppShell>

@@ -17,6 +17,16 @@ export const sendNotifications = async ({ db, type, website, notifications }) =>
     return
   }
 
+  if (channel === 'email' && !user?.confirmed) {
+    console.log(`User email not confirmed, skipping ${type} notifications for ${website.domain}.`)
+    return
+  }
+
+  if (channel !== 'email' && !activeChannel.verified) {
+    console.log(`Notification channel not verified, skipping ${type} notifications for ${website.domain}.`)
+    return
+  }
+
   console.log(`Sending ${type} notifications for ${website.domain} via ${activeChannel.type}`)
 
   if (activeChannel.type === 'email' || activeChannel.type === 'sms') {

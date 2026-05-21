@@ -18,7 +18,7 @@ export default function Roadmap({
     >
       <Box className={classes.circuitPattern}></Box>
       <Stack align="center" gap="xs" mb="xl">
-        <Title order={2} size="2em" ta="center">{heading}</Title>
+        <Title order={2} ta="center" tt="uppercase" fw={600} ls={2}>{heading}</Title>
         <Text size="lg" ta="center">
           {subheading}
         </Text>

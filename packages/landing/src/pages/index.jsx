@@ -5,6 +5,7 @@ import FeatureGrid from '@/components/Landing/FeatureGrid';
 import SocialProof from '@/components/Landing/SocialProof';
 import Roadmap from '@/components/Landing/Roadmap';
 import Pricing from '@/components/Landing/Pricing';
+import ForWho from '@/components/Landing/ForWho';
 import {
   IconHeartbeat,
   IconShieldLock,
@@ -81,6 +82,8 @@ function Landing() {
       />
 
       <Pricing />
+
+      <ForWho />
 
       <Roadmap />
     </Layout>

@@ -4,7 +4,7 @@ import { IconStar } from "@tabler/icons-react";
 
 export default function SocialProof({ title, bullets }) {
   return (
-    <Box mx="auto" mt="12em" mb="2em" py="6em" maw={600} style={{ position: 'relative' }}>
+    <Box mx="auto" py="8em" maw={600} style={{ position: 'relative' }}>
       <Box className={classes.bgImage}></Box>
 
       <Title order={2} mb="md" position="relative" fw="lighter">

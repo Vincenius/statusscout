@@ -5,8 +5,8 @@ import { useState } from "react";
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(true);
   return (
-    <Box mt="12em" mb="12em">
-      <Title size="2em" order={2} ta="center" mt="sm" mb="1em">Pricing</Title>
+    <Box py="8em">
+      <Title order={2} ta="center" tt="uppercase" fw={600} ls={2} mt="sm" mb="1em">Pricing</Title>
       <Text c="dimmed" ta="center" fz="lg" mx="auto" maw="560px" mb="3em">
         Start with a free scan. Then set up continuous monitoring so you're the first to know when something breaks.
       </Text>

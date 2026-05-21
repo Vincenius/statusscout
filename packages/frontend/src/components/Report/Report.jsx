@@ -282,7 +282,7 @@ function Report({ website, checks, status, isQuickCheck = false }) {
             </List.Item>
           </List>
           <Button component={Link} to="/register" variant="filled" size="sm" mx="auto" display="block" w={250}>
-            Start Free 7-Day Trial
+            Start Free 14-Day Trial
           </Button>
           <Text size="sm" c="dimmed" ta="center" mt="xs">
             *No credit card required. Cancel any time.

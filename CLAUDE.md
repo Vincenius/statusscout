@@ -2,6 +2,10 @@
 
 Website monitoring & security scanning platform. Self-hosted, Node.js monorepo.
 
+## Keeping This File Up to Date
+
+When making changes that affect architecture, routes, environment variables, subscription logic, check types, or any other facts documented here, update this file and `README.MD` as part of the same task. Do the same for the README when it documents something that has changed.
+
 ## Writing Style
 
 When writing any user-facing content (copy, emails, UI text, docs, marketing), follow the guide in [writing-style-guide.md](writing-style-guide.md).
@@ -51,62 +55,27 @@ MongoDB (`status-check` database) + Redis (BullMQ queue named `checks`).
 
 ## API Routes (all prefixed `/v1`)
 
-| Method | Path | Auth | Notes |
-|--------|------|------|-------|
-| POST | `/login` | none | Passport local strategy |
-| POST | `/register` | none | Creates trial (7d) or pro (no Stripe key) |
-| GET | `/confirm` | none | Email confirmation token → redirect |
-| POST | `/forgot-password` | none | |
-| POST | `/reset-password` | none | 1-hour token TTL |
-| GET | `/logout` | none | |
-| GET | `/authenticated` | session | |
-| POST | `/website/` | session + plan | Max 5 websites per user |
-| GET | `/website/` | session | With latest check per site |
-| DELETE | `/website/` | session | Soft delete (`deleted: true`) |
-| PUT | `/website/notification-channel` | session | daily/critical channel config |
-| PUT | `/website/notifications` | session | Per-check priority |
-| GET | `/website/uptime` | session | 30-day uptime stats |
-| POST | `/check` | session + plan | Enqueue full check |
-| GET | `/check` | session | Poll check status/results |
-| POST | `/statuscheck` | session | Sync HTTP status only |
-| POST | `/quickcheck` | none | Free public check (Turnstile CAPTCHA) |
-| GET | `/quickcheck` | none | Poll quickcheck results |
-| GET | `/history` | none | 41-entry history by websiteId ObjectId |
-| GET/POST/PUT/DELETE | `/flows` | session | Custom Playwright flows |
-| GET | `/user/` | session | |
-| DELETE | `/user/` | session | Hard deletes all user data |
-| POST | `/user/notification-channel` | session | Add email/sms/ntfy channel |
-| DELETE | `/user/notification-channel` | session | |
-| POST | `/user/verify-channel` | none | Email channel verification token |
-| POST | `/user/verify-phone-number` | none | SMS OTP verification |
-| PUT | `/user/password` | session | |
-| POST | `/user/unsubscribe` | none | Unsubscribe from emails by user ID |
-| POST | `/notification/` | x-api-key | Internal: send email/sms notification |
-| POST | `/notification/trial` | x-api-key | Trial ending emails |
-| POST | `/notification/feedback` | x-api-key | Feedback request emails |
-| POST | `/checkout/session` | session | Create Stripe embedded checkout |
-| POST | `/checkout/return` | none | Confirm payment → set plan to pro |
-| POST | `/checkout/cancel` | session | Cancel or revert subscription |
+See `packages/api/v1/*.js` for the full route list.
 
-**Auth middleware**: Global `preHandler` blocks all routes unless `config.auth === false`. Routes needing active plan additionally call `hasActivePlan` middleware.
+**Auth middleware**: Global `preHandler` blocks all routes unless `config.auth === false`. Routes needing active plan additionally call `hasActivePlan` middleware. Internal service-to-service routes (`/notification/*`) use `x-api-key` auth. Registration creates a 14-day trial (or pro immediately when no `STRIPE_SECRET_KEY`).
 
 ## Worker Check Modules (`packages/worker/checks/`)
 
 | File | Check key | What it does |
 |------|-----------|-------------|
-| `uptime.js` | `uptime` | HTTP GET, status code + response time. Always runs first; if fails, retries once after 5s. Other checks skipped if uptime fails. |
+| `uptime.js` | `uptime` | HTTP GET, status + response time. Runs first; retries once after 5s. All other checks skipped if uptime fails. |
 | `ssl.js` | `ssl` | Certificate validity via ssl-checker |
-| `headers.js` | `headers` | Security headers (CSP, HSTS, X-Content-Type-Options, etc.) + header warnings (version disclosure, HTTP→HTTPS redirect, CORS wildcard) |
+| `headers.js` | `headers` | Security headers (CSP, HSTS, X-Content-Type-Options, etc.) + warnings (version disclosure, HTTP→HTTPS redirect, CORS wildcard) |
 | `fuzz.js` | `fuzz` | Probes hidden paths from fuzz list; 404 probability scoring |
 | `dns.js` | `dns` | NS, MX, AAAA, SPF, DMARC, DKIM, CAA, DS, DNSKEY, wildcard, subdomain takeover via subfinder+subzy |
-| `cookies.js` | `cookies` | Checks cookies for missing security flags (HttpOnly, Secure, SameSite) |
-| `mixedcontent.js` | `mixedcontent` | Detects HTTP resources loaded on HTTPS pages |
-| `pageanalysis.js` | `pageanalysis` | Checks page HTML for verbose error pages, missing SRI on CDN resources, POST forms without CSRF tokens, directory listings |
-| `apidocs.js` | `apidocs` | Detects publicly accessible API documentation (Swagger, OpenAPI, GraphQL) |
+| `cookies.js` | `cookies` | Missing security flags (HttpOnly, Secure, SameSite) |
+| `mixedcontent.js` | `mixedcontent` | HTTP resources loaded on HTTPS pages |
+| `pageanalysis.js` | `pageanalysis` | Verbose error pages, missing SRI on CDN resources, POST forms without CSRF tokens, directory listings |
+| `apidocs.js` | `apidocs` | Publicly accessible API docs (Swagger, OpenAPI, GraphQL) |
 | `links.js` | `links` | Crawl & detect broken links |
-| `lighthouse.js` | `seo` / `a11y` | ~~Lighthouse audits~~ — file exists but no longer used |
-| `performance.js` | `performance` | ~~Google PageSpeed Core Web Vitals~~ — file exists but no longer used |
 | `custom.js` | `custom` | User-defined Playwright DSL flows |
+
+`lighthouse.js` and `performance.js` exist but are no longer used.
 
 ## Notification System
 
@@ -122,7 +91,7 @@ ntfy is sent directly from the worker to `https://ntfy.sh/<topic>`. Email and SM
 
 ## Subscription Logic
 
-- **Trial**: 7 days, `subscription.expiresAt` set
+- **Trial**: 14 days, `subscription.expiresAt` set
 - **Pro**: Stripe subscription, `expiresAt: null`
 - **Self-hosted** (no `STRIPE_SECRET_KEY`): Users get `plan: 'pro'` immediately, no expiry
 
@@ -150,7 +119,7 @@ MONGODB_URI          MongoDB connection string
 REDIS_HOST/PORT      Redis for BullMQ
 API_KEY              Shared secret for internal service-to-service calls
 SESSION_SECRET       ≥32 chars; used by @fastify/secure-session
-PASSWORD_HASH_SECRET Used with CryptoJS SHA256 for password hashing
+PASSWORD_HASH_SECRET Used with bcrypt for password hashing
 APP_URL              Frontend URL (used in email links, CORS)
 API_URL              API URL (used by cron/worker for internal calls)
 STRIPE_SECRET_KEY    Optional; if absent, all users get free pro access
@@ -174,31 +143,3 @@ DISABLE_REGISTRATION If true, only allow first user to register as admin
 
 **Subdomain tracking**: `subfinder` discovers subdomains, `subzy` checks for takeover. Subdomains are stored on the `websites` document and merged with new discoveries each run (fallback if subfinder fails).
 
-## Running Locally
-
-```bash
-yarn install          # install all workspaces
-npx lerna run dev     # start all packages in dev mode
-```
-
-Or with Docker:
-```bash
-cp .env.dist .env     # fill in required vars
-docker-compose up -d
-```
-
-## File Locations Quick Reference
-
-| What | Where |
-|------|-------|
-| API entry | `packages/api/index.js` |
-| API routes | `packages/api/v1/*.js` |
-| Worker entry | `packages/worker/worker.js` |
-| Job dispatcher | `packages/worker/job-runner.js` |
-| Check orchestration | `packages/worker/index.js` |
-| Check modules | `packages/worker/checks/*.js` |
-| Cron jobs | `packages/cron/index.js` |
-| DB connection | `packages/api/db.js`, `packages/worker/db.js`, `packages/cron/db.js` |
-| Issue history logic | `packages/shared/utils/issues.js` |
-| Notification routing | `packages/worker/utils/sendNotifications.js` |
-| Email templates | `packages/api/utils/templates/*.js` |

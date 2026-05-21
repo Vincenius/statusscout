@@ -76,7 +76,7 @@ export default function Pricing() {
           </Card.Section>
 
           <Button component="a" href={`${import.meta.env.VITE_APP_URL}/register`} target="_blank" rel="noopener" fullWidth>
-            Start free 7-day trial
+            Start free 14-day trial
           </Button>
           <Text c="dimmed" fz="sm" mt="xs">
             No credit card required. Cancel anytime.

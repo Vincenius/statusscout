@@ -118,7 +118,7 @@ function QuickCheck() {
                 <List.Item>Simulate signups and checkouts with custom test flows</List.Item>
               </List>
               <Button size="lg" component={Link} to={'/register'}>
-                Start Free 7-Day Trial
+                Start Free 14-Day Trial
               </Button>
               <Text fz="sm">
                 * No credit card required. Cancel anytime.

@@ -29,6 +29,12 @@ export function computeSecurityScore({ sslCheck, fuzzCheck, headersCheck, dnsChe
     issues.high++
   }
 
+  const misconfiguredHeaderCount = (headersCheck?.result?.details?.misconfiguredHeaders || []).length
+  if (misconfiguredHeaderCount > 0) {
+    score -= Math.min(3 * misconfiguredHeaderCount, 12)
+    issues.medium++
+  }
+
   if (fuzzCheck && exposedFiles.length > 0) {
     score -= Math.min(5 * exposedFiles.length, 15)
     issues.medium++

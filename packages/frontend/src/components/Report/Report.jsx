@@ -338,6 +338,7 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
 
   const [expandHeaders, setExpandHeaders] = useState(false);
   const missingHeaders = headersCheck?.result?.details?.missingHeaders || [];
+  const misconfiguredHeaders = headersCheck?.result?.details?.misconfiguredHeaders || [];
   const missingOptionalHeaders = headersCheck?.result?.details?.missingOptionalHeaders || [];
   const displayedHeaders = expandHeaders ? missingHeaders : missingHeaders.slice(0, 3);
 
@@ -361,6 +362,7 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
 
   const hasDnsIssues = dnsCheck ? Object.values(dnsCheck.result.details).filter(d => !d.success).length !== 0 : false
   const hasMissingHeaders = missingHeaders.length !== 0
+  const hasMisconfiguredHeaders = misconfiguredHeaders.length !== 0
   const hasHeaderWarnings = headersCheck ? Boolean(
     headersCheck.result.details.versionDisclosure?.length ||
     (headersCheck.result.details.httpsRedirect &&
@@ -368,7 +370,7 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
       !headersCheck.result.details.httpsRedirect.connectionFailed) ||
     headersCheck.result.details.corsWildcard
   ) : false
-  const hasHeaderIssues = hasMissingHeaders || hasHeaderWarnings
+  const hasHeaderIssues = hasMissingHeaders || hasMisconfiguredHeaders || hasHeaderWarnings
   const hasCookieIssues = cookieCheck ? cookieCheck.result.details.issues.length !== 0 : false
   const hasMixedContent = mixedContentCheck ? mixedContentCheck.result.details.issues.length !== 0 : false
   const hasExposedApis = apiDocsCheck ? apiDocsCheck.result.details.exposed.length !== 0 : false
@@ -474,6 +476,15 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
         refKey: 'mixedContent',
       })
 
+    if (misconfiguredHeaders.length > 0)
+      items.push({
+        severity: 'medium',
+        Icon: IconShield,
+        title: `${misconfiguredHeaders.length} Security Header${misconfiguredHeaders.length > 1 ? 's' : ''} Misconfigured`,
+        description: 'Security headers are set but with insecure values — e.g. HSTS with a short max-age, or CSP with unsafe-inline.',
+        refKey: 'headers',
+      })
+
     if (missingHeaders.length > 0)
       items.push({
         severity: 'low',
@@ -514,7 +525,7 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
     }
 
     return items
-  }, [securityScore, sslCheck, apiDocsCheck, pageAnalysisCheck, headersCheck, cookieCheck, mixedContentCheck, dnsCheck, exposedFiles, missingHeaders])
+  }, [securityScore, sslCheck, apiDocsCheck, pageAnalysisCheck, headersCheck, cookieCheck, mixedContentCheck, dnsCheck, exposedFiles, missingHeaders, misconfiguredHeaders])
 
   const scrollToRef = (ref) => {
     ref.current?.scrollIntoView({ behavior: 'smooth' });
@@ -672,7 +683,7 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
             </Flex>
 
             <Flex direction="column" align="center" onClick={() => scrollToRef(headersRef)} style={{ cursor: 'pointer' }}>
-              {headersCheck && <HeaderChart status={headersCheck.result.status} missingHeaders={headersCheck.result.details.missingHeaders} />}
+              {headersCheck && <HeaderChart status={headersCheck.result.status} missingHeaders={headersCheck.result.details.missingHeaders} misconfiguredHeaders={headersCheck.result.details.misconfiguredHeaders || []} />}
               {!headersCheck && <LoadingChart label="Security Headers" checkState={checkState} />}
             </Flex>
 
@@ -822,21 +833,43 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
         </Card.Section>
 
         <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={headersRef}>
-          <Flex gap="xl" align="center" wrap="wrap" mb={hasMissingHeaders ? 'xl' : 0}>
+          <Flex gap="xl" align="center" wrap="wrap" mb={(hasMissingHeaders || hasMisconfiguredHeaders) ? 'xl' : 0}>
             <Box style={{ flexShrink: 0 }}>
               {headersCheck
-                ? <HeaderChart status={headersCheck.result.status} missingHeaders={headersCheck.result.details.missingHeaders} size="lg" showLabel={false} />
+                ? <HeaderChart status={headersCheck.result.status} missingHeaders={headersCheck.result.details.missingHeaders} misconfiguredHeaders={headersCheck.result.details.misconfiguredHeaders || []} size="lg" showLabel={false} />
                 : <LoadingChart label="Security Headers" size="lg" checkState={checkState} showLabel={false} />}
             </Box>
             <Box style={{ flex: 1, minWidth: 220 }}>
               <Title order={3} mb="xs">Security Headers</Title>
               <Text size="sm" c="dimmed">HTTP security headers help protect websites from common attacks, strengthen user trust, and can improve security compliance.</Text>
-              {headersCheck && !hasMissingHeaders && <Text size="sm" mt="xs" c="green">All recommended security headers are present.</Text>}
+              {headersCheck && !hasMissingHeaders && !hasMisconfiguredHeaders && <Text size="sm" mt="xs" c="green">All recommended security headers are present and correctly configured.</Text>}
             </Box>
           </Flex>
 
+          {hasMisconfiguredHeaders && <>
+            <Text size="md" mb="sm" fs="italic">These headers are present but configured insecurely:</Text>
+            <Table striped withTableBorder>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Td>Header</Table.Td>
+                  <Table.Td>Current Value</Table.Td>
+                  <Table.Td>Issue</Table.Td>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {misconfiguredHeaders.map((item, index) => (
+                  <Table.Tr key={`misconfigured-${index}`}>
+                    <Table.Td><Text fw="bold">{item.name}</Text></Table.Td>
+                    <Table.Td><Code style={{ wordBreak: 'break-all' }}>{item.value.length > 80 ? item.value.slice(0, 80) + '…' : item.value}</Code></Table.Td>
+                    <Table.Td><Text>{item.issue}</Text></Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </>}
+
           {hasMissingHeaders && <>
-            <Text size="md" mb="sm" fs="italic">The following recommended headers are missing:</Text>
+            <Text size="md" mb="sm" mt={hasMisconfiguredHeaders ? 'xl' : 0} fs="italic">The following recommended headers are missing:</Text>
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
@@ -858,11 +891,15 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
                 <Button onClick={() => setExpandHeaders(true)}>Show All</Button>
               </Center>
             )}
-            <CopyPromptButton prompt={generateHeadersPrompt(website.domain, missingHeaders)} />
           </>}
+
+          {(hasMissingHeaders || hasMisconfiguredHeaders) && (
+            <CopyPromptButton prompt={generateHeadersPrompt(website.domain, missingHeaders, misconfiguredHeaders)} />
+          )}
+
           {missingOptionalHeaders.length > 0 && (
             <>
-              <Text size="md" mb="sm" mt={hasMissingHeaders ? 'xl' : 0} fs="italic" c="dimmed">Optional headers not set (advanced isolation):</Text>
+              <Text size="md" mb="sm" mt={(hasMissingHeaders || hasMisconfiguredHeaders) ? 'xl' : 0} fs="italic" c="dimmed">Optional headers not set (advanced isolation):</Text>
               <Table striped withTableBorder>
                 <Table.Thead>
                   <Table.Tr>

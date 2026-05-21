@@ -20,14 +20,22 @@ ${diagnosis}
 Figure out where my site is hosted and how SSL is managed by reading my codebase (config files, deployment configs, nginx/Apache config, docker-compose, CI scripts, etc.), then walk me through the fix. If you can't tell from the code, ask me.`
 }
 
-export function generateHeadersPrompt(domain, missingHeaders) {
-  const headerList = missingHeaders.map(h => `- ${h}`).join('\n')
+export function generateHeadersPrompt(domain, missingHeaders, misconfiguredHeaders = []) {
+  const parts = []
 
-  return `My website ${domain} is missing these HTTP security headers:
+  if (missingHeaders.length > 0) {
+    parts.push(`Missing headers (need to be added):\n${missingHeaders.map(h => `- ${h}`).join('\n')}`)
+  }
 
-${headerList}
+  if (misconfiguredHeaders.length > 0) {
+    parts.push(`Misconfigured headers (present but insecure values):\n${misconfiguredHeaders.map(h => `- ${h.name}: ${h.issue} (current value: "${h.value}")`).join('\n')}`)
+  }
 
-Figure out which framework or server I'm using by reading my codebase (package.json, config files, etc.), then show me how to add all the missing headers. If you can't tell, ask me.`
+  return `My website ${domain} has the following HTTP security header issues:
+
+${parts.join('\n\n')}
+
+Figure out which framework or server I'm using by reading my codebase (package.json, config files, etc.), then show me how to fix all of these. If you can't tell, ask me.`
 }
 
 export function generateHeaderWarningsPrompt(domain, details) {

@@ -62,20 +62,22 @@ export function SSLChart({ status, size = 'md', showLabel = true }) {
   );
 }
 
-export function HeaderChart({ status, missingHeaders, size = 'md', showLabel = true }) {
+export function HeaderChart({ status, missingHeaders, misconfiguredHeaders = [], size = 'md', showLabel = true }) {
   const s = sizes[size] || sizes.md;
-  const isAllGood = missingHeaders.length === 0;
+  const totalIssues = missingHeaders.length + misconfiguredHeaders.length;
+  const isAllGood = totalIssues === 0;
+  const hasWrongValues = misconfiguredHeaders.length > 0;
   return (
     <Flex direction="column" align="center">
       <RingProgress
         size={s.ring}
         roundCaps
         thickness={s.thickness}
-        sections={[{ value: 100, color: isAllGood ? 'green' : 'yellow' }]}
+        sections={[{ value: 100, color: isAllGood ? 'green' : hasWrongValues ? 'orange' : 'yellow' }]}
         label={
           <Center>
             {isAllGood && <IconCheck size={s.icon} stroke={3} color="green" />}
-            {!isAllGood && <Text c="yellow" fw="bold" size={s.text}>{missingHeaders.length}</Text>}
+            {!isAllGood && <Text c={hasWrongValues ? 'orange' : 'yellow'} fw="bold" size={s.text}>{totalIssues}</Text>}
           </Center>
         }
       />

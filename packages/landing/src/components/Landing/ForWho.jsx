@@ -19,7 +19,7 @@ const PERSONAS = [
 export default function ForWho() {
   return (
     <Box py="8em" style={{ position: 'relative' }}>
-      <Box className={classes.bgColor} />
+      <Box className={classes.circuitPattern} />
 
       <Title order={2} ta="center" tt="uppercase" fw={600} mb="xl" ls={2}>
         Who it&apos;s for
@@ -45,7 +45,7 @@ export default function ForWho() {
             >
               {p.role}
             </Title>
-            <Text c="dimmed" size="sm" style={{ maxWidth: 520 }}>
+            <Text size="sm" style={{ maxWidth: 520 }}>
               {p.description}
             </Text>
           </Flex>

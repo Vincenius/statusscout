@@ -16,7 +16,9 @@ export const getRecentChecks = (checks) => {
 }
 
 export const notificationMap = {
-  email: { label: 'E-Mail Address', placeholder: 'you@example.com', type: 'email' },
-  sms: { label: 'Phone Number', placeholder: '123-456-7890', type: 'text' },
-  ntfy: { label: 'ntfy Topic', placeholder: 'your-topic', type: 'text' },
+  email:   { label: 'E-Mail Address',    placeholder: 'you@example.com',                         type: 'email', name: 'E-Mail',  color: 'blue'   },
+  sms:     { label: 'Phone Number',      placeholder: '+1 234 567 8900',                          type: 'text',  name: 'SMS',     color: 'teal'   },
+  ntfy:    { label: 'ntfy Topic',        placeholder: 'your-topic',                               type: 'text',  name: 'ntfy',    color: 'orange' },
+  discord: { label: 'Discord Webhook URL', placeholder: 'https://discord.com/api/webhooks/…',    type: 'text',  name: 'Discord', color: 'violet' },
+  slack:   { label: 'Slack Webhook URL', placeholder: 'https://hooks.slack.com/services/…',      type: 'text',  name: 'Slack',   color: 'green'  },
 }

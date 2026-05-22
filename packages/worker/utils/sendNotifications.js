@@ -50,5 +50,52 @@ export const sendNotifications = async ({ db, type, website, notifications }) =>
       method: 'POST',
       body: getMessage({ type, website, notifications })
     })
+  } else if (activeChannel.type === 'slack') {
+    const websiteName = website?.domain || 'your website'
+    const icon = type === 'critical' ? ':red_circle:' : ':large_yellow_circle:'
+    await fetch(activeChannel.value, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `${icon} *New ${type} issues on ${websiteName}:*\n${notifications.map(n => `• ${getNotificationMessage(n)}`).join('\n')}`,
+            },
+          },
+          {
+            type: 'actions',
+            elements: [{
+              type: 'button',
+              text: { type: 'plain_text', text: 'View Report' },
+              url: `${process.env.APP_URL}/website/${website?.index}/report`,
+            }],
+          },
+        ],
+      })
+    }).catch(err => {
+      console.error('Error sending Slack notification:', err)
+    })
+  } else if (activeChannel.type === 'discord') {
+    const websiteName = website?.domain || 'your website'
+    const color = type === 'critical' ? 0xe74c3c : 0xe67e22
+    await fetch(activeChannel.value, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title: `${type === 'critical' ? '🔴' : '🟡'} New ${type} issues on ${websiteName}`,
+          description: notifications.map(n => `• ${getNotificationMessage(n)}`).join('\n'),
+          color,
+          url: `${process.env.APP_URL}/website/${website?.index}/report`,
+          footer: { text: 'StatusScout' },
+          timestamp: new Date().toISOString(),
+        }]
+      })
+    }).catch(err => {
+      console.error('Error sending Discord notification:', err)
+    })
   }
 }

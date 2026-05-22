@@ -2,10 +2,10 @@ import { Popover, Text, ThemeIcon } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks';
 import { IconInfoSmall } from '@tabler/icons-react'
 
-const InfoPopover = ({ infoText }) => {
+const InfoPopover = ({ infoText, children, width = 300 }) => {
   const [opened, { close, open }] = useDisclosure(false);
 
-  return <Popover width={300} position="bottom" withArrow shadow="md" opened={opened}>
+  return <Popover width={width} position="bottom" withArrow shadow="md" opened={opened}>
     <Popover.Target>
       <ThemeIcon
         variant="outline"
@@ -23,7 +23,7 @@ const InfoPopover = ({ infoText }) => {
       </ThemeIcon>
     </Popover.Target>
     <Popover.Dropdown>
-      <Text size="sm">{infoText}</Text>
+      {children ?? <Text size="sm">{infoText}</Text>}
     </Popover.Dropdown>
   </Popover>
 }

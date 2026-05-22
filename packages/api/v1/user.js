@@ -105,7 +105,7 @@ export default async function userRoutes(fastify, opts) {
             verificationToken = id
           }
 
-          if (type === 'ntfy') {
+          if (type === 'ntfy' || type === 'discord' || type === 'slack') {
             verified = true
           }
 

@@ -1,6 +1,6 @@
 import Layout from '@/components/Layout/Layout'
-import { ActionIcon, Box, Button, Card, Flex, List, Modal, PasswordInput, Table, Text, ThemeIcon, Title } from '@mantine/core'
-import { IconBell, IconBrandPowershell, IconLock, IconMail, IconPhone, IconPlus, IconTag, IconTrash, IconUser } from '@tabler/icons-react'
+import { ActionIcon, Badge, Box, Button, Card, Flex, List, Modal, Paper, PasswordInput, Stack, Text, ThemeIcon, Title } from '@mantine/core'
+import { IconBell, IconBrandDiscord, IconBrandPowershell, IconBrandSlack, IconLock, IconMail, IconPhone, IconPlus, IconTag, IconTrash, IconUser } from '@tabler/icons-react'
 import { useAuthSWR } from '@/utils/useAuthSWR'
 import getFormData from '@/utils/getFormData'
 import { useEffect, useState } from 'react'
@@ -8,13 +8,16 @@ import { useDisclosure } from '@mantine/hooks'
 import { Link } from 'react-router-dom'
 import { notifications } from '@mantine/notifications';
 import NewNotificationChannelModal from '@/components/Notifications/NewNotificationChannelModal'
+import { notificationMap } from '@/utils/checks'
 
 const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 
 const ChannelIconMap = {
   email: IconMail,
   sms: IconPhone,
-  ntfy: IconBrandPowershell
+  ntfy: IconBrandPowershell,
+  discord: IconBrandDiscord,
+  slack: IconBrandSlack,
 }
 
 function Settings() {
@@ -256,57 +259,63 @@ function Settings() {
           </Card.Section>
 
           <Card.Section p="md" withBorder>
-            <Title order={3} mb="md" fw="normal">Your Notification Channels:</Title>
+            <Text c="dimmed" size="sm" mb="md">
+              Channels you can assign to websites for critical alerts and daily digests.
+            </Text>
 
-            <Table withRowBorders mb="md">
-              <Table.Tbody>
-                <Table.Tr>
-                  <Table.Td w={40}>
-                    <ThemeIcon size={24} radius="sm" variant="outline">
-                      <IconMail size={16} />
-                    </ThemeIcon>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text>{user.email}</Text>
-                  </Table.Td>
-                </Table.Tr>
+            <Stack gap="xs" mb="md">
+              <Paper withBorder p="sm" radius="sm">
+                <Flex align="center" gap="sm">
+                  <ThemeIcon size={28} radius="sm" variant="light" color="blue">
+                    <IconMail size={16} />
+                  </ThemeIcon>
+                  <Box flex={1}>
+                    <Flex align="center" gap="xs">
+                      <Badge size="sm" color="blue" variant="light">E-Mail</Badge>
+                      <Text size="sm">{user.email}</Text>
+                    </Flex>
+                    <Text size="xs" c="dimmed">Primary email — always available</Text>
+                  </Box>
+                </Flex>
+              </Paper>
 
-                {
-                  (user.notificationChannels || []).map((channel, index) => {
-                    const ChannelIcon = ChannelIconMap[channel.type] || IconMail
-                    return (
-                      <Table.Tr key={`channel-${index}`}>
-                        <Table.Td w={40}>
-                          <ThemeIcon size={24} radius="sm" variant="outline">
-                            <ChannelIcon size={16} />
-                          </ThemeIcon>
-                        </Table.Td>
-                        <Table.Td>
-                          <Flex gap="xs" align="center">
-                            <Text>{channel.value}</Text>
-                            {!channel.verified && (
-                              <Text c="dimmed">(pending verification)</Text>
-                            )}
-                          </Flex>
-                        </Table.Td>
-                        <Table.Td w={42}>
-                          <ActionIcon loading={deleteLoading === channel.id} color="red" variant="outline" size="sm" onClick={() => handleDeleteChannel(channel.id)}>
-                            <IconTrash size={16} />
-                          </ActionIcon>
-                        </Table.Td>
-                      </Table.Tr>
-                    )
-                  })
-                }
-                <Table.Tr>
-                  <Table.Td colSpan={3}>
-                    <Button mt="xs" variant="outline" leftSection={<IconPlus size={16} />} onClick={openModal}>
-                      Add New Channel
-                    </Button>
-                  </Table.Td>
-                </Table.Tr>
-              </Table.Tbody>
-            </Table>
+              {(user.notificationChannels || []).map((channel, index) => {
+                const ChannelIcon = ChannelIconMap[channel.type] || IconMail
+                const meta = notificationMap[channel.type]
+                const isWebhook = channel.type === 'discord' || channel.type === 'slack'
+                const displayValue = isWebhook ? 'Webhook configured' : channel.value
+                const usedBy = websites.filter(w => w.criticalChannel === channel.id || w.dailyChannel === channel.id)
+
+                return (
+                  <Paper withBorder p="sm" radius="sm" key={`channel-${index}`}>
+                    <Flex align="center" gap="sm">
+                      <ThemeIcon size={28} radius="sm" variant="light" color={meta?.color || 'gray'}>
+                        <ChannelIcon size={16} />
+                      </ThemeIcon>
+                      <Box flex={1}>
+                        <Flex align="center" gap="xs" wrap="wrap">
+                          <Badge size="sm" color={meta?.color || 'gray'} variant="light">{meta?.name || channel.type}</Badge>
+                          {channel.verified
+                            ? <Text size="sm">{displayValue}</Text>
+                            : <Badge size="sm" color="orange" variant="light">Pending verification</Badge>
+                          }
+                        </Flex>
+                        {usedBy.length > 0 && (
+                          <Text size="xs" c="dimmed" mt={2}>Used by: {usedBy.map(w => w.domain).join(', ')}</Text>
+                        )}
+                      </Box>
+                      <ActionIcon loading={deleteLoading === channel.id} color="red" variant="subtle" size="sm" onClick={() => handleDeleteChannel(channel.id)}>
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Flex>
+                  </Paper>
+                )
+              })}
+            </Stack>
+
+            <Button variant="light" leftSection={<IconPlus size={16} />} onClick={openModal} size="sm">
+              Add Channel
+            </Button>
           </Card.Section>
         </Card>
       </Box>

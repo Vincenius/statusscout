@@ -14,7 +14,7 @@ export const runMixedContentCheck = async ({ uri, id, websiteId, createdAt, quic
   }
 
   try {
-    const res = await fetch(uri, { redirect: 'follow' })
+    const res = await fetch(uri, { redirect: 'follow', signal: AbortSignal.timeout(10000) })
     const html = await res.text()
 
     const issues = new Set()

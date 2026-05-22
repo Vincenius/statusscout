@@ -2,6 +2,7 @@ import fastifyPassport from '@fastify/passport';
 import { ObjectId } from 'mongodb'
 import { connectDB } from '../db.js'
 import { hasActivePlan, getWebsiteLimit } from '../utils/user.js';
+import { computeSecurityScore } from '@statusscout/shared';
 
 export default async function userRoutes(fastify, opts) {
   fastify.post('/',
@@ -50,29 +51,60 @@ export default async function userRoutes(fastify, opts) {
         const db = await connectDB()
         const websites = await db.collection('websites').find({ userId: user._id, deleted: { $ne: true } }).toArray()
         const websiteIds = websites.map(w => w._id)
-        const recentChecks = await db.collection('checks').aggregate([
-          { $match: { websiteId: { $in: websiteIds } } },
-          { $sort: { createdAt: -1 } },
-          {
-            $group: {
-              _id: "$websiteId",
-              recentCheck: { $first: "$$ROOT" }
-            }
-          },
-          { $replaceRoot: { newRoot: "$recentCheck" } }
-        ]).toArray()
 
-        return websites.map(w => ({
-          id: w._id.toString(),
-          domain: w.domain,
-          createdAt: w.createdAt,
-          index: w.index,
-          recentCheck: recentChecks.find(c => c.websiteId.toString() === w._id.toString())?.createdAt,
-          dailyChannel: w.dailyChannel || 'disabled',
-          criticalChannel: w.criticalChannel || 'disabled',
-          notifications: w.notifications || {},
-          publicReport: w.publicReport || false,
-        }))
+        const [recentChecks, latestChecksByType] = await Promise.all([
+          db.collection('checks').aggregate([
+            { $match: { websiteId: { $in: websiteIds } } },
+            { $sort: { createdAt: -1 } },
+            { $group: { _id: '$websiteId', recentCheck: { $first: '$$ROOT' } } },
+            { $replaceRoot: { newRoot: '$recentCheck' } }
+          ]).toArray(),
+          websiteIds.length > 0
+            ? db.collection('checks').aggregate([
+                { $match: { websiteId: { $in: websiteIds } } },
+                { $sort: { createdAt: -1 } },
+                { $group: { _id: { websiteId: '$websiteId', check: '$check' }, doc: { $first: '$$ROOT' } } },
+                { $replaceRoot: { newRoot: '$doc' } }
+              ]).toArray()
+            : Promise.resolve([])
+        ])
+
+        return websites.map(w => {
+          const wid = w._id.toString()
+          const websiteChecks = latestChecksByType.filter(c => c.websiteId.toString() === wid)
+
+          const sslCheck = websiteChecks.find(c => c.check === 'ssl')
+          const fuzzCheck = websiteChecks.find(c => c.check === 'fuzz')
+          const headersCheck = websiteChecks.find(c => c.check === 'headers')
+          const dnsCheck = websiteChecks.find(c => c.check === 'dns')
+          const cookieCheck = websiteChecks.find(c => c.check === 'cookies')
+          const mixedContentCheck = websiteChecks.find(c => c.check === 'mixedcontent')
+          const pageAnalysisCheck = websiteChecks.find(c => c.check === 'pageanalysis')
+          const apiDocsCheck = websiteChecks.find(c => c.check === 'apidocs')
+          const uptimeCheck = websiteChecks.find(c => c.check === 'uptime')
+
+          let score = null
+          if (sslCheck || headersCheck || fuzzCheck) {
+            const exposedFiles = (fuzzCheck?.result?.details?.files || []).filter(f => f.probability > 0.5)
+            const missingHeaders = headersCheck?.result?.details?.missingHeaders || []
+            const computed = computeSecurityScore({ sslCheck, fuzzCheck, headersCheck, dnsCheck, cookieCheck, mixedContentCheck, pageAnalysisCheck, apiDocsCheck, exposedFiles, missingHeaders })
+            score = { grade: computed.grade, color: computed.color, label: computed.label, score: computed.score }
+          }
+
+          return {
+            id: wid,
+            domain: w.domain,
+            createdAt: w.createdAt,
+            index: w.index,
+            recentCheck: recentChecks.find(c => c.websiteId.toString() === wid)?.createdAt,
+            dailyChannel: w.dailyChannel || 'disabled',
+            criticalChannel: w.criticalChannel || 'disabled',
+            notifications: w.notifications || {},
+            publicReport: w.publicReport || false,
+            score,
+            uptimeStatus: uptimeCheck?.result?.status ?? null,
+          }
+        })
       } catch (e) {
         console.error(e)
         reply.code(500).send({ error: 'Internal server error' });

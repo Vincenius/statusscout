@@ -11,7 +11,7 @@ export default async function authRoutes(fastify, opts) {
     '/login',
     {
       preValidation: fastifyPassport.authenticate('local', { failWithError: true }),
-      config: { auth: false }
+      config: { auth: false, rateLimit: { max: 10, timeWindow: '1 minute' } }
     },
     async (req, reply) => {
       return { message: 'Logged in' };
@@ -20,7 +20,7 @@ export default async function authRoutes(fastify, opts) {
 
   fastify.post(
     '/register',
-    { config: { auth: false } },
+    { config: { auth: false, rateLimit: { max: 5, timeWindow: '1 minute' } } },
     async (req, reply) => {
       const db = await connectDB()
 
@@ -88,7 +88,7 @@ export default async function authRoutes(fastify, opts) {
 
   fastify.post(
     '/forgot-password',
-    { config: { auth: false } },
+    { config: { auth: false, rateLimit: { max: 5, timeWindow: '1 minute' } } },
     async (req, reply) => {
       const db = await connectDB()
 
@@ -121,7 +121,7 @@ export default async function authRoutes(fastify, opts) {
 
   fastify.post(
     '/reset-password',
-    { config: { auth: false } },
+    { config: { auth: false, rateLimit: { max: 10, timeWindow: '1 minute' } } },
     async (req, reply) => {
       const db = await connectDB()
 

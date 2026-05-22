@@ -3,7 +3,7 @@ export const checkDefaultNotifications = {
   'ssl': 'critical',
   'headers': 'daily',
   'cookies': 'daily',
-  'fuzz': 'daily',
+  'fuzz': 'critical',
   'dns': 'daily',
   'mixedcontent': 'daily',
   'pageanalysis': 'daily',

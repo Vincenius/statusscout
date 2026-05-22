@@ -4,7 +4,7 @@ export const runCookieCheck = async ({ uri, id, websiteId, createdAt, quickcheck
   console.log(`Running cookie check for ${uri}`)
 
   try {
-    const res = await fetch(uri, { redirect: 'follow' })
+    const res = await fetch(uri, { redirect: 'follow', signal: AbortSignal.timeout(10000) })
 
     // getSetCookie() returns all Set-Cookie values as an array (Node.js 18.14.1+)
     const setCookieHeaders = res.headers.getSetCookie?.() ?? []

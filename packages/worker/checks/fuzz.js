@@ -50,7 +50,7 @@ export const runFuzzCheck = async ({ uri, id, db, websiteId, createdAt, type, qu
   // Fetch homepage once to detect catch-all / SPA fallback behavior
   let homepageText = null;
   try {
-    const homepageRes = await fetch(uri);
+    const homepageRes = await fetch(uri, { signal: AbortSignal.timeout(10000) });
     homepageText = await homepageRes.text();
   } catch (_) {}
 
@@ -59,9 +59,9 @@ export const runFuzzCheck = async ({ uri, id, db, websiteId, createdAt, type, qu
     limit(async () => {
       try {
         const filename = file.startsWith('/') ? file.slice(1) : file;
-        const res = await fetch(`${uri}/${filename}`, { method: 'head' });
+        const res = await fetch(`${uri}/${filename}`, { method: 'head', signal: AbortSignal.timeout(8000) });
         if (res.status === 200) {
-          const contentRes = await fetch(`${uri}/${filename}`);
+          const contentRes = await fetch(`${uri}/${filename}`, { signal: AbortSignal.timeout(8000) });
           const text = await contentRes.text();
           if (homepageText && isFallbackPage(text, homepageText)) {
             return { status: 200, file, isFallback: true };

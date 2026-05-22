@@ -70,7 +70,7 @@ export const runHeaderCheck = async ({ uri, id, websiteId, createdAt, quickcheck
   ]
 
   try {
-    const res = await fetch(uri, { redirect: 'follow' })
+    const res = await fetch(uri, { redirect: 'follow', signal: AbortSignal.timeout(10000) })
     const headers = {}
     for (const [key, value] of res.headers.entries()) {
       headers[key.toLowerCase()] = value

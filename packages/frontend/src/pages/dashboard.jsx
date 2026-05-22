@@ -1,10 +1,83 @@
 import Layout from '@/components/Layout/Layout'
-import { Box, Card, Flex, Title, Text, Button, Blockquote } from '@mantine/core'
+import { Box, Card, Flex, Title, Text, Button, Blockquote, ThemeIcon, Tooltip } from '@mantine/core'
 import { useAuthSWR } from '@/utils/useAuthSWR'
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import CreateWebsite from '@/components/Website/CreateWebsite';
+
+function timeAgo(dateString) {
+  const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000)
+  if (seconds < 60) return 'just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+const UPTIME_DOT = {
+  success: { color: 'var(--mantine-color-green-6)', label: 'Online' },
+  fail:    { color: 'var(--mantine-color-red-6)',   label: 'Down'   },
+  null:    { color: 'var(--mantine-color-gray-4)',  label: 'No data yet' },
+}
+
+function WebsiteCard({ website }) {
+  const hostname = new URL(website.domain).hostname
+  const dot = UPTIME_DOT[website.uptimeStatus] ?? UPTIME_DOT.null
+
+  return (
+    <Card
+      key={website.domain}
+      withBorder
+      p="md"
+      mb="md"
+      shadow="md"
+      style={{ maxWidth: 500, flex: '1 1 calc(33% - 1rem)', display: 'flex', flexDirection: 'column' }}
+    >
+      <Flex justify="space-between" align="flex-start" mb="xs" gap="sm">
+        <Flex align="center" gap="xs" style={{ overflow: 'hidden', flex: 1 }}>
+          <Tooltip label={dot.label} withArrow>
+            <Box
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                backgroundColor: dot.color,
+                flexShrink: 0,
+              }}
+            />
+          </Tooltip>
+          <Title
+            order={3}
+            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
+            <Link to={`/website/${website.index}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              {hostname}
+            </Link>
+          </Title>
+        </Flex>
+
+        {website.score && (
+          <Tooltip label={`Security score: ${website.score.score}/100 — ${website.score.label}`} withArrow>
+            <ThemeIcon color={website.score.color} size={32} radius="sm" style={{ flexShrink: 0 }}>
+              <Text fw={700} size="sm" style={{ lineHeight: 1 }}>{website.score.grade}</Text>
+            </ThemeIcon>
+          </Tooltip>
+        )}
+      </Flex>
+
+      <Text size="sm" c="dimmed" style={{ flex: 1 }}>
+        {website.recentCheck ? `Last checked ${timeAgo(website.recentCheck)}` : 'No checks yet'}
+      </Text>
+
+      <Button variant="outline" size="sm" component={Link} to={`/website/${website.index}`} mt="md">
+        View Details
+      </Button>
+    </Card>
+  )
+}
 
 function Dashboard() {
   const { data: websites = [] } = useAuthSWR(`${import.meta.env.VITE_API_URL}/v1/website`)
@@ -48,14 +121,10 @@ function Dashboard() {
               <Text fw={500} mb="md">Your Pro subscription expired. Please renew your subscription to continue using premium features like getting notifications.</Text>
               <Button component={Link} to="/checkout">Buy Pro Subscription</Button>
             </Blockquote>}
-            <Title order={2} mb="md" fw="normal">Your Websites:</Title>
+            <Title order={2} mb="md" fw="normal">Your Websites</Title>
             <Flex gap="md" direction="row" wrap="wrap" mb="md">
               {websites.map(website => (
-                <Card key={website.domain} withBorder p="md" mb="md" shadow='md' style={{ maxWidth: 500, textDecoration: 'none', flex: '1 1 calc(33% - 1rem)' }}>
-                  <Title order={3}>{new URL(website.domain).hostname}</Title>
-                  <Text mb="sm">Last checked at: {website.recentCheck ? new Date(website.recentCheck).toLocaleString() : 'No checks yet'}</Text>
-                  <Button variant="outline" component={Link} to={`/website/${website.index}`}>View Details</Button>
-                </Card>
+                <WebsiteCard key={website.domain} website={website} />
               ))}
             </Flex>
           </Box>

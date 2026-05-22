@@ -9,7 +9,7 @@ export const runUptimeCheck = async ({ uri, id, websiteId, createdAt, quickcheck
 
   try {
     const start = Date.now()
-    const response = await fetch(uri, { method: 'GET' })
+    const response = await fetch(uri, { method: 'GET', signal: AbortSignal.timeout(10000) })
     const duration = Date.now() - start
 
     if (response.ok) {

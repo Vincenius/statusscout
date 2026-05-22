@@ -1,4 +1,4 @@
-import { Container, Title, Card, TextInput, Button, Stepper, Flex } from '@mantine/core';
+import { Container, Title, Card, TextInput, Button, Stepper, Flex, Text, Box } from '@mantine/core';
 import { IconBell, IconBrowserPlus } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
@@ -62,17 +62,17 @@ function CreateWebsite({ title }) {
           return;
         }
 
-        setResult({ id, index })
-
-        // trigger initial check for id
-        fetch(`${import.meta.env.VITE_API_URL}/v1/check`, {
+        // trigger initial check and capture jobId for report polling
+        const checkRes = await fetch(`${import.meta.env.VITE_API_URL}/v1/check`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           credentials: 'include',
           body: JSON.stringify({ id }),
-        })
+        }).then(res => res.json())
+
+        setResult({ id, index, jobId: checkRes?.jobId })
 
         await mutate()
 
@@ -89,7 +89,8 @@ function CreateWebsite({ title }) {
   };
 
   const goToReport = () => {
-    navigate(`/website/${result.index}/report`);
+    const path = `/website/${result.index}/report`
+    navigate(result.jobId ? `${path}?j_id=${result.jobId}` : path)
   }
 
   return (
@@ -116,14 +117,15 @@ function CreateWebsite({ title }) {
           <Stepper.Step icon={<IconBell size={18} />}>
             {result?.id && <>
               <NotificationSettings websiteId={result.id} noBorder>
-                <Title order={2} align="center">
-                  Notification Settings
-                </Title>
+                <Box>
+                  <Title order={2} mb={4}>Set up your alerts</Title>
+                  <Text size="sm" c="dimmed">Your first scan is running. Choose how you want to be notified when issues are found.</Text>
+                </Box>
               </NotificationSettings>
 
-              <Flex gap="md" justify="flex-end" mt="md">
-                <Button variant='outline' onClick={goToReport}>Skip</Button>
-                <Button onClick={goToReport}>Continue</Button>
+              <Flex direction="column" align="flex-end" gap={6} mt="md">
+                <Button onClick={goToReport}>Go to report</Button>
+                <Text size="xs" c="dimmed">You can change this anytime in website settings.</Text>
               </Flex>
             </>}
           </Stepper.Step>

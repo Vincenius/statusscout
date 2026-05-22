@@ -17,6 +17,7 @@
     "@fastify/cors": "^11.0.1",
     "@fastify/middie": "^9.0.3",
     "@fastify/passport": "^3.0.2",
+    "@fastify/rate-limit": "^10.3.0",
     "@fastify/secure-session": "^8.2.0",
     "@statusscout/shared": "*",
     "bcryptjs": "^3.0.3",

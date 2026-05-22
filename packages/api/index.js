@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import rateLimit from '@fastify/rate-limit'
 import middie from '@fastify/middie';
 import fastifySecureSession from '@fastify/secure-session';
 import { Strategy as LocalStrategy } from 'passport-local';
@@ -24,6 +25,8 @@ const fastify = Fastify({
 })
 
 await fastify.register(middie)
+
+await fastify.register(rateLimit, { global: false })
 
 await fastify.register(cors, {
   origin: [process.env.FRONTEND_URL, process.env.APP_URL].filter(Boolean),

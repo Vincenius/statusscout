@@ -718,6 +718,20 @@ function Report({ website, checks, status, isQuickCheck = false, isPublicReport 
             </Flex>}
           </SimpleGrid>
         </Card.Section>
+        {isQuickCheck && checkState === 'completed' && (
+          <Card.Section withBorder py="lg" px={{ base: "md", md: "xl" }} style={{ backgroundColor: 'var(--mantine-color-blue-light)' }}>
+            <Group justify="space-between" wrap="wrap" gap="sm">
+              <Box>
+                <Text fw={500} size="sm">Want continuous monitoring?</Text>
+                <Text size="xs" c="dimmed">Alerts, scheduled checks, and custom test flows — free for 14 days.</Text>
+              </Box>
+              <Button size="sm" variant="outline" component={Link} to="/register">
+                Start free trial →
+              </Button>
+            </Group>
+          </Card.Section>
+        )}
+
         <Card.Section withBorder py="xl" px={{ base: "md", md: "xl" }} ref={sslRef}>
           <Flex gap="xl" align="center" wrap="wrap">
             <Box style={{ flexShrink: 0 }}>

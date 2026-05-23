@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from "react-router-dom";
 import Layout from '@/components/Layout/Layout'
-import { Blockquote, Box, Button, Card, Container, Group, Text, Title } from '@mantine/core'
+import { Alert, Blockquote, Box, Button, Card, Container, Group, Text, Title } from '@mantine/core'
+import { IconInfoCircle } from '@tabler/icons-react'
 import { trackEvent } from '@/utils/trackEvent'
 import { useNavigate, Link } from 'react-router-dom'
 import Report from '@/components/Report/Report';
@@ -97,6 +98,10 @@ function QuickCheck() {
     <Layout title="Quick Check" isPublicRoute logoLink={import.meta.env.VITE_BASE_URL || '/'}>
       <Container size="md" py="md" px={{ base: "0", md: "md" }}>
         <Box>
+          <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light" mb="md" px={{ base: "md", md: "md" }}>
+            This scan checks publicly visible issues only. It won't catch vulnerabilities in your code or private infrastructure.
+          </Alert>
+
           <Report
             website={{ domain: url }}
             checks={checks}
@@ -104,18 +109,6 @@ function QuickCheck() {
             isQuickCheck={true}
             quickcheckId={quickcheckId}
           />
-
-          <Card withBorder p="md" mt="xl" radius="md">
-            <Group justify="space-between" wrap="wrap" gap="sm">
-              <Box>
-                <Text fw={500} size="sm">Want continuous monitoring?</Text>
-                <Text size="xs" c="dimmed">Alerts, scheduled checks, and custom test flows — free for 14 days.</Text>
-              </Box>
-              <Button size="sm" variant="outline" component={Link} to="/register">
-                Start free trial →
-              </Button>
-            </Group>
-          </Card>
         </Box>
       </Container>
     </Layout>
